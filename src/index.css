@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  --shadow-custom: 0 4px 6px -1px rgba(0, 0, 0, .1);
+}
+
+
+@layer components {
+  .custom-theme-color {
+    @apply bg-gradient-to-r from-red-500 to-blue-500
+  }
+
+  .custom-text-color {
+    @apply bg-gradient-to-r from-red-600 to-blue-700
+  }
+
+  .custom-inverse-theme-color {
+    @apply bg-gradient-to-r from-blue-500 to-red-500
+  }
+}
+
+@keyframes hardBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-hard-bounce {
+  animation: hardBounce 0.8s ease-in-out infinite;
+}
