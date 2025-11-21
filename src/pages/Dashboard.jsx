@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Home, MapPin, Users, LogOut } from 'lucide-react';
+import { Menu, X, Home, MapPin, Users, LogOut, Calendar } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 
@@ -13,9 +13,10 @@ export function DashboardPage() {
   });
 
   const menuItems = [
-    { id: 'website', icon: Home, label: 'Quản Lý Website', path: 'website' },
-    { id: 'branches', icon: MapPin, label: 'Chi Nhánh', path: 'co_so' },
-    { id: 'members', icon: Users, label: 'Thành Viên', path: 'nguoi_dung' }
+    { id: "website", icon: Home, label: "Quản Lý Website", path: "website" },
+    { id: "branches", icon: MapPin, label: "Cơ Sở", path: "co_so" },
+    { id: "members", icon: Users, label: "Thành Viên", path: "nguoi_dung" },
+    { id: "sessions", icon: Calendar, label: "Buổi học", path: "buoi_hoc" },
   ];
 
   return (
@@ -36,22 +37,6 @@ export function DashboardPage() {
 
         <nav className="p-4 space-y-2">
           {menuItems.map(item => (
-            // <button
-            //   key={item.id}
-            //   onClick={() => {
-            //     setCurrentPage(item.id);
-            //     setSidebarOpen(false);
-            //   }}
-            //   className={`w-full flex items-center gap-3 p-3 rounded-xl mb-2 transition-all duration-200 ${
-            //     currentPage === item.id 
-            //       ? 'bg-white text-blue-900 shadow-lg transform scale-105' 
-            //       : 'hover:bg-blue-700/50 hover:translate-x-1'
-            //   }`}
-            // >
-            //   <item.icon size={20} />
-            //   <span className="font-medium">{item.label}</span>
-            // </button>
-
             <NavLink
               onClick={() => {
                 setCurrentPage(item.id);

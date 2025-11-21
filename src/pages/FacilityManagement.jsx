@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Search, Plus, MapPin, Phone, Users, Clock, Calendar, Edit, Eye, ChevronRight, FileText, ExternalLink, Navigation, CalendarClock } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { facilityService } from '../services/facility_api';
 import { facilityClassService } from '../services/facility_class_api'
 import EditFacility from '../features/facility/components/facility_management/facility_edit_view';
@@ -11,8 +11,10 @@ import ClassDetailPage from '../features/facility/components/facility_management
 import { userService } from '../services/user_api';
 import { facilityClassUserService } from '../services/facility_class_user_api';
 import pLimit from 'p-limit';
-import { useManagerOptions } from '../hooks/getManagerOptions'
+import { useManagerOptions } from '../hooks/useManagerOptionsData'
 import { ThreeDotLoader } from '../components/ActionFallback';
+import { useFacility } from '../hooks/useFacilityData';
+import Header from '../components/Header';
 
 const FacilityManagement = () => {
     const [view, setView] = useState('list'); // 'list' or 'detail'
@@ -23,11 +25,7 @@ const FacilityManagement = () => {
     const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'inactive'
     const { data: managerOptions, isPending: isLoadingManagerOptions } = useManagerOptions();
 
-    const {data: facilities, isPending: isLoadingFacilities} = useQuery({
-        queryKey: ['facilities_management'],
-        queryFn: () => facilityService.getAllFacilitiesManagement(),
-        staleTime: 60000 * 5
-    });
+    const {data: facilities, isPending: isLoadingFacilities} = useFacility();
 
     const queryClient = useQueryClient();
 
@@ -270,10 +268,10 @@ const FacilityManagement = () => {
         }
         catch(error) {
           console.log(error);
-            if(error.response) {
-              if(Array.isArray(error.response.data)) {
-                const err = new Error( "Đã có tài khoản người dùng mới trùng ID với các người dùng khác trên hệ thống");
-                err.duplicatedUsers = error.response.data;
+            if(error.response.data) {
+              if(Array.isArray(error.response.data.duplicateIds)) {
+                const err = new Error(error.response.data.message);
+                err.duplicatedUsers = error.response.data.duplicateIds;
                 throw err;
               }
               throw new Error(error.response.data);
@@ -687,117 +685,114 @@ const FacilityManagement = () => {
     );
 
     return (
-    <>
-      {isLoadingFacilities || isLoadingManagerOptions 
-        && <ThreeDotLoader message='Đang tải thông tin cơ sở. Vui lòng chờ'/>
-      }
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          {view === "list" ? (
-            <>
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Quản lý Cơ sở
-                  </h1>
-                  <p className="text-gray-600 mt-1">
-                    Quản lý thông tin các cơ sở taekwondo
-                  </p>
-                </div>
-                <button
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium shadow-sm"
-                  onClick={() => setView("edit")}
-                >
-                  <Plus className="w-5 h-5" />
-                  Thêm cơ sở mới
-                </button>
-              </div>
+      <>
+        {isLoadingFacilities ||
+          (isLoadingManagerOptions && (
+            <ThreeDotLoader message="Đang tải thông tin cơ sở. Vui lòng chờ" />
+          ))}
+        <div className="min-h-screen bg-gray-50 p-8">
+          <div className="max-w-7xl mx-auto">
+            {view === "list" ? (
+              <>
+                <Header
+                  title={"Quản lý Cơ sở"}
+                  description={"Quản lý thông tin các cơ sở"}
+                  functionButton={
+                    <button
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium shadow-sm"
+                      onClick={() => setView("edit")}
+                    >
+                      <Plus className="w-5 h-5" />
+                      Thêm cơ sở mới
+                    </button>
+                  }
+                />
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Tìm kiếm theo tên cơ sở, địa chỉ, hoặc tên quản lý..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-4 relative">
+                      <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Tìm kiếm theo tên cơ sở, địa chỉ, hoặc tên quản lý..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
+                          text-gray-900 dark:text-white text-sm rounded-lg
+                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none
+                          block w-full pl-10 pr-10 py-3
+                          cursor-pointer shadow-sm
+                          hover:border-gray-400 dark:hover:border-gray-500
+                          hover:shadow-md transition-all duration-200
+                          appearance-none
+                          bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                          dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%239ca3af%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                          bg-size-[1.5em_1.5em] bg-position-[right_0.5rem_center] bg-no-repeat"
+                    >
+                      <option value="all">Tất cả trạng thái</option>
+                      <option value="active">Đang hoạt động</option>
+                      <option value="inactive">Tạm ngưng</option>
+                    </select>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
+                          text-gray-900 dark:text-white text-sm rounded-lg
+                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none
+                          block w-full pl-10 pr-10 py-3
+                          cursor-pointer shadow-sm
+                          hover:border-gray-400 dark:hover:border-gray-500
+                          hover:shadow-md transition-all duration-200
+                          appearance-none
+                          bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                          dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%239ca3af%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                          bg-size-[1.5em_1.5em] bg-position-[right_0.5rem_center] bg-no-repeat"
+                    >
+                      <option value="name">Sắp xếp: Tên cơ sở</option>
+                      <option value="managerName">Sắp xếp: Quản lý</option>
+                    </select>
                   </div>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
-                          text-gray-900 dark:text-white text-sm rounded-lg
-                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none
-                          block w-full pl-10 pr-10 py-3
-                          cursor-pointer shadow-sm
-                          hover:border-gray-400 dark:hover:border-gray-500
-                          hover:shadow-md transition-all duration-200
-                          appearance-none
-                          bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
-                          dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%239ca3af%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
-                          bg-size-[1.5em_1.5em] bg-position-[right_0.5rem_center] bg-no-repeat"
-                  >
-                    <option value="all">Tất cả trạng thái</option>
-                    <option value="active">Đang hoạt động</option>
-                    <option value="inactive">Tạm ngưng</option>
-                  </select>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
-                          text-gray-900 dark:text-white text-sm rounded-lg
-                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none
-                          block w-full pl-10 pr-10 py-3
-                          cursor-pointer shadow-sm
-                          hover:border-gray-400 dark:hover:border-gray-500
-                          hover:shadow-md transition-all duration-200
-                          appearance-none
-                          bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
-                          dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%239ca3af%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
-                          bg-size-[1.5em_1.5em] bg-position-[right_0.5rem_center] bg-no-repeat"
-                  >
-                    <option value="name">Sắp xếp: Tên cơ sở</option>
-                    <option value="managerName">Sắp xếp: Quản lý</option>
-                  </select>
                 </div>
-              </div>
 
-              <div className="space-y-4">
-                {filteredFacilities.map((facility) => (
-                  <FacilityCard key={facility.id} facility={facility} />
-                ))}
-              </div>
-
-              {filteredFacilities.length === 0 && (
-                <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-                  <p className="text-gray-500">Không tìm thấy cơ sở nào</p>
+                <div className="space-y-4">
+                  {filteredFacilities.map((facility) => (
+                    <FacilityCard key={facility.id} facility={facility} />
+                  ))}
                 </div>
-              )}
-            </>
-          ) : view === "detail" ? (
-            <FacilityDetail facility={selectedFacility} />
-          ) : view === "class" ? (
-            <ClassDetailPage
-              classDetail={selectedClass}
-              facilityId={selectedFacility.id}
-              onCancel={onCancelEdit}
-              onSave={onSaveEditClass}
-            />
-          ) : (
-            <EditFacility
-              managerOptions= {managerOptions.data}
-              setFacility={setSelectedFacility}
-              facility={selectedFacility}
-              onSave={onSaveEdit}
-              onCancel={onCancelEdit}
-            />
-          )}
+
+                {filteredFacilities.length === 0 && (
+                  <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+                    <p className="text-gray-500">Không tìm thấy cơ sở nào</p>
+                  </div>
+                )}
+              </>
+            ) : view === "detail" ? (
+              <FacilityDetail facility={selectedFacility} />
+            ) : view === "class" ? (
+              <ClassDetailPage
+                classDetail={selectedClass}
+                facilityId={selectedFacility.id}
+                onCancel={onCancelEdit}
+                onSave={onSaveEditClass}
+              />
+            ) : (
+              <EditFacility
+                managerOptions={managerOptions.data}
+                setFacility={setSelectedFacility}
+                facility={selectedFacility}
+                onSave={onSaveEdit}
+                onCancel={onCancelEdit}
+              />
+            )}
+          </div>
         </div>
-      </div>
-    </>
+      </>
     );
 };
 

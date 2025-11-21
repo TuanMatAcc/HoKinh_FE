@@ -82,13 +82,7 @@ export function BranchesSection() {
             <h3 className="text-xl font-semibold text-gray-800">Quản Lý Chi Nhánh</h3>
             <p className="text-sm text-gray-500 mt-1">Chỉnh sửa thông tin chi nhánh hiển thị trên website</p>
           </div>
-          <button
-            onClick={addBranch}
-            className="flex items-center gap-2 bg-linear-to-r from-red-600 to-red-700 text-white px-5 py-2.5 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            <Plus size={20} />
-            <span className="font-medium">Thêm Chi Nhánh</span>
-          </button>
+          
         </div>
 
         <div className="flex flex-col justify-between items-start gap-4 bg-white p-5 rounded-xl shadow-sm border border-gray-200">

@@ -1,17 +1,14 @@
-import './App.css'
-import { Homepage } from './pages/Homepage.jsx'
-import { LoginPage } from './features/authentication/components/LoginPage.jsx'
-import { ArticlePage } from './features/article/components/article-display.jsx'
-import {
-  createBrowserRouter,
-  RouterProvider
-} from "react-router-dom"
-import { DashboardPage } from './pages/Dashboard.jsx'
-import  ClassSessionManager from './pages/test.jsx'
-import ClassScheduleView from './features/session_management/components/SessionManagement.jsx'
-import WebsiteManagement from './pages/WebsiteManagement.jsx'
-import FacilityManagement from './pages/FacilityManagement.jsx'
-import HVGenerator from './pages/test2.jsx'
+import "./App.css";
+import { Homepage } from "./pages/Homepage.jsx";
+import { LoginPage } from "./features/authentication/components/LoginPage.jsx";
+import { ArticlePage } from "./features/article/components/article-display.jsx";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { DashboardPage } from "./pages/Dashboard.jsx";
+import ClassSessionManager from "./features/session_management/components/session_edit/ClassSessionEdit.jsx";
+import SessionManagement from "./pages/SessionManagement.jsx";
+import WebsiteManagement from "./pages/WebsiteManagement.jsx";
+import FacilityManagement from "./pages/FacilityManagement.jsx";
+import HVGenerator from "./pages/test2.jsx";
 
 function App() {
   const router = createBrowserRouter([
@@ -49,29 +46,14 @@ function App() {
             },
             {
               path: "buoi_hoc", // results in /dashboard/website
-              element: <ClassSessionManager />,
+              element: <SessionManagement />,
             },
           ],
-        },
-        {
-          path: "/test",
-          element: <ClassSessionManager />,
-        },
-        {
-          path: "/test1",
-          element: <ClassScheduleView />,
-        },
-        {
-          path: "/test2",
-          element: <HVGenerator />,
         },
       ],
     },
   ]);
-  return (
-    <RouterProvider router={router} />
-  )
+  return <RouterProvider router={router} />;
 }
 
-export default App
-
+export default App;

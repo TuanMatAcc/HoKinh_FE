@@ -13,7 +13,6 @@ import {
   Camera,
 } from "lucide-react";
 import { ConfirmDialog } from "../../../../components/ConfirmDialog";
-import { facilityClassUserService } from "../../../../services/facility_class_user_api";
 import { userService } from "../../../../services/user_api";
 import { LoadingErrorUI } from "../../../../components/LoadingError";
 import AnnouncementUI from "../../../../components/Announcement";
@@ -21,6 +20,8 @@ import generateHVCode from "../../../../utils/createStudentId";
 import getBeltLabel from "../../../../utils/formatBeltLevel";
 import validateUserForm from "../../../../hooks/ValidateUser";
 import validateClassForm from "../../../../hooks/ValidateClass";
+import mapUserRole from "../../../../utils/mapUserRole";
+import { useActiveClassMembers, useInactiveClassMembers } from "../../../../hooks/useClassMembers"
 
 const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
   const queryClient = useQueryClient();
@@ -107,39 +108,14 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
     isSuccess: isActiveMemberSuccess,
     data: activeMembers,
     refetch: refetchActiveMembers,
-  } = useQuery({
-    queryKey: ["members", "active", classDetail.id],
-    queryFn: () => facilityClassUserService.getMemberForClass(classDetail.id),
-    enabled: !!classDetail?.id , // fetch only when id exists
-    select: (data) =>
-      data.data.reduce((mem, user) => {
-        const type = user.roleInClass;
-        if (!mem[type]) mem[type] = [];
-        mem[type].push(user);
-        return mem;
-      }, {}),
-    staleTime: Infinity,
-  });
+  } = useActiveClassMembers({classId: classDetail?.id});
 
   const {
     isPending: isInactiveMemberPending,
     isSuccess: isInactiveMemberSuccess,
     data: inactiveMembers,
-    refetch: refetchInactiveMembers
-  } = useQuery({
-    queryKey: ["members", "inactive", classDetail.id],
-    queryFn: () =>
-      facilityClassUserService.getInactiveMemberForClass(classDetail.id),
-    enabled: !!classDetail?.id, // fetch only when id exists
-    select: (data) =>
-      data.data.reduce((mem, user) => {
-        const type = user.roleInClass;
-        if (!mem[type]) mem[type] = [];
-        mem[type].push(user);
-        return mem;
-      }, {}),
-    staleTime: Infinity
-  });
+    refetch: refetchInactiveMembers,
+  } = useInactiveClassMembers({ classId: classDetail?.id });
 
   const {
     isPending: isPendingSearch,
@@ -565,7 +541,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                 </span>
                 {member.role && (
                   <span className="flex items-center gap-1">
-                    <span className="font-medium">Vai trò:</span> {member.role}
+                    <span className="font-medium">Chức danh:</span> {mapUserRole(member.role)}
                   </span>
                 )}
               </div>
@@ -1245,7 +1221,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Giờ bắt đầu *
@@ -1314,7 +1290,9 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {classErrors.description && (
-                <p className="mt-1 mb-3 text-sm text-red-500">{classErrors.description}</p>
+                <p className="mt-1 mb-3 text-sm text-red-500">
+                  {classErrors.description}
+                </p>
               )}
             </div>
           </div>
@@ -1355,7 +1333,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
               </button>
             </div>
 
-            {activeTab === "active" && classDetail.id ? (
+            {activeTab === "active" && classDetail?.id ? (
               isActiveMemberPending ? (
                 <>
                   <MemberCardSkeleton />
@@ -1403,7 +1381,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
               <></>
             )}
 
-            {activeTab === "inactive" && classDetail.id ? (
+            {activeTab === "inactive" && classDetail?.id ? (
               isInactiveMemberPending ? (
                 <>
                   <MemberCardSkeleton />
@@ -1450,7 +1428,8 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                 />
               )
             ) : (
-              <></>
+              <>
+              </>
             )}
 
             {activeTab === "active" && !classDetail.id && (

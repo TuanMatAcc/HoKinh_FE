@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import { LoadingErrorUI } from '../components/LoadingError';
 import Banner from '../components/Banner';
+import { generateHTMLFromJSON } from '../utils/generateHtmlUtils';
 
 export function Homepage() {
 
@@ -1011,6 +1012,7 @@ function EventSection({sectionRef}) {
     staleTime: 300000,
     refetchOnMount: true,
   })
+  console.log(data?.data);
 
   return (
   <>
@@ -1086,9 +1088,10 @@ function EventContent({itemsPerPage, data, currentPage, setCurrentPage}) {
           )}
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {currentEvents.map((event, index) => (
-              <ArticleCard key={startIndex + index} article={event} />
-            ))}
+            {currentEvents.map((event, index) => {
+              event.content = generateHTMLFromJSON(event.content);
+              return <ArticleCard key={startIndex + index} article={event} />
+            })}
           </div>
 
           {totalPages > 1 && currentPage < totalPages - 1 && (
@@ -1176,7 +1179,6 @@ function ArticleCard({ article }) {
 
   const handleClick = () => {
     // Navigate to detail page and pass the article data
-    article['gallery'] = JSON.parse(article['gallery']);
     navigate(`/article/${article.id}`, { state: { article } });
   };
 
