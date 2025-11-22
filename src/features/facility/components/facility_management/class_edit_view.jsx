@@ -24,6 +24,7 @@ import mapUserRole from "../../../../utils/mapUserRole";
 import { useActiveClassMembers, useInactiveClassMembers } from "../../../../hooks/useClassMembers"
 
 const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
+  console.log(classDetail.id);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("active");
   const [showAddModal, setShowAddModal] = useState(false);

@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
-import { Crown, Plus, UserCheck, UserX, Trash2, UserSearch } from "lucide-react";
+import { Crown, Plus, UserCheck, UserX, Trash2 } from "lucide-react";
 import { getStatus } from "../../../../../utils/getVietnameseRole";
 import { ConfirmDialog } from "../../../../../components/ConfirmDialog";
 import UserSearchModal from "../../../../../components/UserSearchModal";
+import AnnouncementUI from "../../../../../components/Announcement";
 
 // Instructor Card Component
 const InstructorCard = ({
@@ -80,6 +81,8 @@ const InstructorsSection = ({ template, onToggleStatus, onToggleRole, onDelete, 
   const [confirmDeleteInstructor, setConfirmDeleteInstructor] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const deletedId = useRef(null);
+  const [showError, setShowError] = useState(false);
+  const errorMessage = useRef("");
   // Find the current shift head
   const shiftHeadId =
     template.mainInstructors.find((i) => i.roleInSession === "leader")
@@ -89,13 +92,29 @@ const InstructorsSection = ({ template, onToggleStatus, onToggleRole, onDelete, 
     onToggleRole(template.dayOfWeek, instructorId, isCurrentShiftHead);
   };
 
+  const handleAddInstructor = (user) => {
+    try {
+      onAdd(template.dayOfWeek, user, "mainInstructors");
+    } catch (error) {
+      errorMessage.current = error.message;
+      setShowError(true);
+    }
+  };
+
   return (
     <>
       {showAddModal && (
         <UserSearchModal 
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
-          onSelectUser={(user) => onAdd(template.dayOfWeek, user, "coach")}
+          onSelectUser={(user) => handleAddInstructor(user)}
+          typeSearch={"mainInstructors"}
+        />
+      )}
+      {showError && (
+        <AnnouncementUI
+          setVisible={setShowError}
+          message={errorMessage.current}
         />
       )}
       {confirmDeleteInstructor && (

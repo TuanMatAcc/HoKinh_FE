@@ -146,7 +146,8 @@ const TemplateCard = ({
         onToggleRole={onToggleRole}
       />
       <StudentsSection 
-        students={template.students} 
+        onAdd={onAdd}
+        template={template} 
         onDelete={onDeleteMembers}
       />
       <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">

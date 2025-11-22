@@ -1,13 +1,21 @@
 import { useState, useEffect } from "react";
-import { X, Search, Phone, Calendar, UserCircle2 } from "lucide-react";
+import {
+  X,
+  Search,
+  Phone,
+  Calendar,
+  UserCircle2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import useSearchUsers from "../hooks/useSearchUsers";
+import getBeltLabel from "../utils/formatBeltLevel";
 
 const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isSearch, setIsSearch] = useState(false);
-  const pageSize = 1;
+  const pageSize = 10; // Changed from 1 to 10
 
   const {
     isPending: isPendingSearch,
@@ -19,42 +27,17 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
     searchQuery: searchQuery,
     currentPage: currentPage,
     isSearch: isSearch,
-    pageSize: pageSize
-  })
+    pageSize: pageSize,
+  });
+
+  
 
   useEffect(() => {
     if (mockUsers && isSearch) {
+        console.log(mockUsers);
       setIsSearch(false);
     }
   }, [mockUsers, isSearch]);
-
-  // Mock data - replace with actual API call
-//   const mockUsers = [
-//     {
-//       id: "u001",
-//       name: "Nguyen Van A",
-//       phoneNumber: "0912345678",
-//       dateOfBirth: "1990-03-15",
-//       beltLevel: "white",
-//       avatar: null,
-//     },
-//     {
-//       id: "u002",
-//       name: "Tran Thi B",
-//       phoneNumber: "0987654321",
-//       dateOfBirth: "1995-07-20",
-//       beltLevel: "yellow",
-//       avatar: null,
-//     },
-//     {
-//       id: "u003",
-//       name: "Le Van C",
-//       phoneNumber: "0901234567",
-//       dateOfBirth: "1992-11-10",
-//       beltLevel: "green",
-//       avatar: null,
-//     },
-//   ];
 
   const getInitials = (name) => {
     return name
@@ -66,14 +49,63 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
   };
 
   const formatDate = (dateString) => {
-    return dateString; // Already in YYYY-MM-DD format
+    return dateString;
   };
 
   const handleSelectUser = (user) => {
     onSelectUser(user);
-    setSearchQuery("");
-    setSearchResults([]);
+    setCurrentPage(1); // Reset to page 1 when selecting user
   };
+
+  const handleSearch = () => {
+    setCurrentPage(1); // Reset to page 1 on new search
+    setIsSearch(true);
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    setIsSearch(true);
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const totalPages = mockUsers?.data?.totalPages || 0;
+    const pages = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push("...");
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  const totalPages = mockUsers?.data?.totalPages || 0;
+  const hasResults = mockUsers?.data?.content?.length > 0;
 
   if (!isOpen) return null;
 
@@ -103,8 +135,8 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
               placeholder="Nhập tên để tìm kiếm..."
               value={searchQuery}
               onKeyDown={(e) => {
-                if(e.key === 'Enter') {
-                    setIsSearch(true);
+                if (e.key === "Enter") {
+                  handleSearch();
                 }
               }}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -118,10 +150,12 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
         <div className="px-6 pb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-semibold text-gray-700">
-              Kết quả tìm kiếm ({mockUsers?.data?.content.length})
+              Kết quả tìm kiếm ({mockUsers?.data?.totalElements || 0})
             </h3>
-            {mockUsers?.data?.content.length > 0 && (
-              <span className="text-sm text-gray-500">Trang {currentPage}/{mockUsers?.data?.totalPages}</span>
+            {hasResults && (
+              <span className="text-sm text-gray-500">
+                Trang {currentPage}/{totalPages}
+              </span>
             )}
           </div>
 
@@ -131,7 +165,7 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
               <div className="text-center py-8 text-gray-500">
                 Đang tìm kiếm...
               </div>
-            ) : mockUsers?.data?.content.length > 0 ? (
+            ) : hasResults ? (
               mockUsers?.data?.content.map((user) => (
                 <div
                   key={user.id}
@@ -163,7 +197,7 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
                         <div className="flex items-center gap-1.5">
                           <UserCircle2 className="w-4 h-4" />
                           <span className="text-blue-600 font-medium">
-                            {user.beltLevel}
+                            {getBeltLabel(user.beltLevel)}
                           </span>
                         </div>
                       </div>
@@ -194,6 +228,57 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {hasResults && totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              {/* Previous Button */}
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-lg transition ${
+                  currentPage === 1
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-blue-600 hover:bg-blue-50"
+                }`}
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              {/* Page Numbers */}
+              {getPageNumbers().map((page, index) => (
+                <button
+                  key={index}
+                  onClick={() =>
+                    typeof page === "number" && handlePageChange(page)
+                  }
+                  disabled={page === "..."}
+                  className={`min-w-10 h-10 rounded-lg font-medium transition ${
+                    page === currentPage
+                      ? "bg-blue-600 text-white"
+                      : page === "..."
+                      ? "text-gray-400 cursor-default"
+                      : "text-gray-700 hover:bg-blue-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              {/* Next Button */}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg transition ${
+                  currentPage === totalPages
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-blue-600 hover:bg-blue-50"
+                }`}
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

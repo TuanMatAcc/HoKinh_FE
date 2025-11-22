@@ -124,19 +124,17 @@ const ClassSessionEdit = ({ setView }) => {
             id: 1,
             name: "Nguyễn Văn A",
             roleInSession: "coach",
-            status: "available",
           },
           {
             id: 2,
             name: "Trần Thị B",
             roleInSession: "instructor",
-            status: "available",
           },
         ],
         students: [
-          { id: 1, name: "Võ sinh Lê Văn C", isRegular: true },
-          { id: 2, name: "Võ sinh Phạm Thị D", isRegular: true },
-          { id: 3, name: "Võ sinh Hoàng Văn E", isRegular: false },
+          { id: 1, name: "Võ sinh Lê Văn C", roleInSession: 'student',isRegular: true },
+          { id: 2, name: "Võ sinh Phạm Thị D", roleInSession: 'student',isRegular: true },
+          { id: 3, name: "Võ sinh Hoàng Văn E", roleInSession: 'student',isRegular: false },
         ],
       };
     });
@@ -245,17 +243,39 @@ const ClassSessionEdit = ({ setView }) => {
   };
 
   const onAddMembers = (dayOfWeek, member, role) => {
-    setTemplates((prevTemplates) =>
-      prevTemplates.map((template) => {
-        if (template.dayOfWeek === dayOfWeek) {
-          return {
-            ...template,
-            [role]: [...template[role], member]
-          };
-        }
-        return template;
-      })
-    );
+    console.log(member);
+    const exist = templates.find(template => dayOfWeek === template.dayOfWeek)[role]
+                           .find(mem => mem.id === member.id);
+    if(!exist) {
+      setTemplates((prevTemplates) =>
+        prevTemplates.map((template) => {
+          if (template.dayOfWeek === dayOfWeek) {
+            return {
+              ...template,
+              [role]: [
+                ...template[role],
+                role === "mainInstructors"
+                  ? {
+                      id: member.id,
+                      name: member.name,
+                      roleInSession: "assistant",
+                    }
+                  : {
+                      id: member.id,
+                      name: member.name,
+                      roleInSession: "student",
+                      isRegular: member.classId === selectedClass.id
+                    },
+              ],
+            };
+          }
+          return template;
+        })
+      );
+    }
+    else {
+      throw new Error("Người dùng " + member.name + " đã được thêm vào template");
+    }
   }
 
   const onDeleteMembers = (dayOfWeek, memberId) => {

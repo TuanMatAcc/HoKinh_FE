@@ -46,7 +46,7 @@ const FacilityManagement = () => {
             if(classInfo.id) {
                 console.log("ON SAVE:")
                 await facilityClassService.update(classInfo.id, classInfo);
-                queryClient.setQueryData(["facilities_management"], prev => ({
+                queryClient.setQueryData(["facilities", 'management'], prev => ({
                     ...prev,
                     data: prev.data.map((fac) => fac.id === facilityId ? {
                         ...fac,
@@ -176,7 +176,7 @@ const FacilityManagement = () => {
                   }
                 )).data;
 
-                queryClient.setQueryData(["facilities_management"], (prev) => ({
+                queryClient.setQueryData(["facilities", 'management'], (prev) => ({
                   ...prev,
                   data: prev.data.map((fac) =>
                     fac.id === facilityId
@@ -188,7 +188,7 @@ const FacilityManagement = () => {
                   ),
                 }));
                 console.log(
-                  queryClient.getQueryData(["facilities_management"])
+                  queryClient.getQueryData(["facilities", 'management'])
                 );
                 setSelectedFacility((prev) => ({
                   ...prev,
@@ -268,7 +268,7 @@ const FacilityManagement = () => {
         }
         catch(error) {
           console.log(error);
-            if(error.response.data) {
+            if(error?.response?.data) {
               if(Array.isArray(error.response.data.duplicateIds)) {
                 const err = new Error(error.response.data.message);
                 err.duplicatedUsers = error.response.data.duplicateIds;
@@ -332,7 +332,7 @@ const FacilityManagement = () => {
                 returnedData = (await facilityService.update(facility.id, facility)).data;
                 console.log(returnedData);
                 // update on local state
-                queryClient.setQueryData(['facilities_management'], oldData => {
+                queryClient.setQueryData(['facilities', 'management'], oldData => {
                     if(!oldData) return oldData;
                     return {
                         ...oldData,
@@ -353,7 +353,7 @@ const FacilityManagement = () => {
                 facility.image = await handleUpload(image);
                 returnedData = (await facilityService.create(facility)).data;
                 // update on local state
-                queryClient.setQueryData(['facilities_management'], oldData => {
+                queryClient.setQueryData(['facilities', 'management'], oldData => {
                     if(!oldData) return oldData;
 
                     return {
