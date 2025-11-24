@@ -2,6 +2,7 @@ import {
   Calendar,
   Clock
 } from "lucide-react";
+import formatDate from "../../../../utils/formatDate";
 
 // Class Overview Card Component
 const ClassOverviewCard = ({ classData }) => (
@@ -12,14 +13,24 @@ const ClassOverviewCard = ({ classData }) => (
         <Clock className="w-4 h-4 text-blue-600" />
         <span className="text-xs text-gray-600">Cập nhật:</span>
         <span className="text-sm text-blue-700">
-          {classData.sessionsUpdatedAt}
+          {classData.sessionsUpdatedAt
+            ? formatDate({
+                dateString: classData.sessionsUpdatedAt,
+                showTime: true,
+                region: "vi-VN",
+              })
+            : null}
         </span>
       </div>
       <div className="flex items-center gap-2">
         <Calendar className="w-4 h-4 text-green-600" />
         <span className="text-xs text-gray-600">Buổi xa nhất:</span>
         <span className="text-sm text-green-700 font-medium">
-          {classData.latestSession}
+          {classData.latestSession ? formatDate({
+                dateString: classData.latestSession,
+                showTime: false,
+                region: "vi-VN",
+              }) : null}
         </span>
       </div>
     </div>

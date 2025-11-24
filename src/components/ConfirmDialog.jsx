@@ -1,5 +1,4 @@
 import { X, Save, Trash2 } from 'lucide-react';
-import { act } from 'react';
 
 export function ConfirmDialog({action = 'store', title, askDetail, options=['Không', 'Có'], handleCancel, handleConfirm}) {
     return (

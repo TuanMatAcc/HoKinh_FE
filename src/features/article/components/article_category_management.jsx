@@ -97,7 +97,7 @@ const CategoryManagement = ({ categories, onBack }) => {
             data: oldData.data.filter(cat => cat.id !== editingCategory)
           }
         });
-        editingCategory = null;
+        setEditingCategory(null);
         setInProgress(false);
       }
       catch(error) {

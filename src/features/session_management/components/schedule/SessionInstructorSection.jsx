@@ -1,25 +1,37 @@
 import { useRef, useState } from "react";
-import { Crown, Plus, UserCheck, UserX, Trash2 } from "lucide-react";
-import { getStatus } from "../../../../../utils/getVietnameseRole";
-import { ConfirmDialog } from "../../../../../components/ConfirmDialog";
-import UserSearchModal from "../../../../../components/UserSearchModal";
-import AnnouncementUI from "../../../../../components/Announcement";
+import {
+  Crown,
+  Plus,
+  UserCheck,
+  UserX,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  Edit2,
+  X,
+} from "lucide-react";
+import { getStatus } from "../../../../utils/getVietnameseRole";
+import { ConfirmDialog } from "../../../../components/ConfirmDialog";
+import UserSearchModal from "../../../../components/UserSearchModal";
+import AnnouncementUI from "../../../../components/Announcement";
 
 // Instructor Card Component
-const InstructorCard = ({
+const SessionInstructorCard = ({
   instructor,
   onToggleStatus,
   onSetShiftHead,
   isShiftHead,
   onDelete,
+  onToggleAttended,
   showStatus = true,
-  allowEdit,
+  allowEdit = false,
+  isEditMode = false,
 }) => {
   return (
     <div
       title={instructor.id}
       className={`flex items-center justify-between bg-white rounded p-2 transition ${
-        isShiftHead && allowEdit ? "ring-2 ring-amber-400 shadow-sm" : ""
+        isShiftHead && isEditMode ? "ring-2 ring-amber-400 shadow-sm" : ""
       }`}
     >
       <div className="flex items-center gap-2 flex-1">
@@ -33,7 +45,7 @@ const InstructorCard = ({
           <div className="flex items-center gap-2">
             <span className="text-sm text-blue-900">{instructor.name}</span>
             {/* Show badge next to name only in edit mode */}
-            {isShiftHead && allowEdit && (
+            {isShiftHead && isEditMode && (
               <div className="flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs font-medium">
                 <Crown className="w-3 h-3" />
                 <span>Ca trưởng</span>
@@ -44,33 +56,57 @@ const InstructorCard = ({
       </div>
 
       <div className="flex items-center gap-1">
+        {/* Attended Toggle Button - Circular style with icon */}
+        {onToggleAttended && (
+          <button
+            onClick={onToggleAttended}
+            disabled={!isEditMode}
+            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition border ${
+              instructor.attended
+                ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+            }`}
+            title={instructor.attended ? "Đã có mặt" : "Vắng mặt"}
+          >
+            {instructor.attended ? (
+              <>
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Có mặt</span>
+              </>
+            ) : (
+              <>
+                <XCircle className="w-3 h-3" />
+                <span>Vắng</span>
+              </>
+            )}
+          </button>
+        )}
+
         {/* Non-edit mode: Show shift head badge in place of status button */}
-        {!allowEdit && isShiftHead ? (
+        {!isEditMode && isShiftHead ? (
           <div className="flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs font-medium">
             <Crown className="w-3 h-3" />
             <span>Ca trưởng</span>
           </div>
+        ) : /* Show status button for non-shift-head or when not in non-edit mode with shift head */
+        showStatus && onToggleStatus && !isEditMode && isShiftHead ? (
+          <></>
         ) : (
-          /* Show status button for non-shift-head or when not in non-edit mode with shift head */
-          showStatus &&
-          onToggleStatus &&
-          !allowEdit &&
-          isShiftHead ? (<></>) : (
-            <button
-              onClick={onToggleStatus}
-              className={`px-2 py-0.5 rounded text-xs font-medium transition hover:opacity-80 ${
-                instructor.roleInSession !== "off"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-orange-100 text-orange-700"
-              }`}
-            >
-              {getStatus(instructor.roleInSession)}
-            </button>
-          )
+          <button
+            onClick={onToggleStatus}
+            disabled={!isEditMode}
+            className={`px-2 py-0.5 rounded text-xs font-medium transition hover:opacity-80 ${
+              instructor.roleInSession !== "off"
+                ? "bg-green-100 text-green-700"
+                : "bg-orange-100 text-orange-700"
+            }`}
+          >
+            {getStatus(instructor.roleInSession)}
+          </button>
         )}
 
         {/* Crown button for setting shift head (edit mode only) */}
-        {onSetShiftHead && allowEdit && (
+        {onSetShiftHead && isEditMode && (
           <button
             onClick={onSetShiftHead}
             className={`p-1 rounded transition ${
@@ -85,7 +121,7 @@ const InstructorCard = ({
         )}
 
         {/* Delete button (edit mode only) */}
-        {allowEdit && (
+        {isEditMode && (
           <button
             className="text-red-600 hover:text-red-700 p-1"
             onClick={onDelete}
@@ -99,32 +135,34 @@ const InstructorCard = ({
 };
 
 // Instructors Section Component
-const InstructorsSection = ({
-  template,
+const SessionInstructorSection = ({
+  session,
   onToggleStatus,
   onToggleRole,
+  onToggleAttended,
   onDelete,
   onAdd,
   allowEdit = true,
 }) => {
   const [confirmDeleteInstructor, setConfirmDeleteInstructor] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const deletedId = useRef(null);
   const [showError, setShowError] = useState(false);
   const errorMessage = useRef("");
 
   // Find the current shift head
-  const shiftHeadId = template.mainInstructors.find(
+  const shiftHeadId = session.mainInstructors.find(
     (i) => i.roleInSession === "leader"
   )?.id;
 
   const handleSetShiftHead = (instructorId, isCurrentShiftHead) => {
-    onToggleRole(template.dayOfWeek, instructorId, isCurrentShiftHead);
+    onToggleRole(session.dayOfWeek, instructorId, isCurrentShiftHead);
   };
 
   const handleAddInstructor = (user) => {
     try {
-      onAdd(template.dayOfWeek, user, "mainInstructors");
+      onAdd(session.dayOfWeek, user, "mainInstructors");
     } catch (error) {
       errorMessage.current = error.message;
       setShowError(true);
@@ -157,7 +195,7 @@ const InstructorsSection = ({
           handleCancel={() => setConfirmDeleteInstructor(false)}
           handleConfirm={() => {
             setConfirmDeleteInstructor(false);
-            onDelete(template.dayOfWeek, deletedId.current);
+            onDelete(session.dayOfWeek, deletedId.current);
           }}
         />
       )}
@@ -168,28 +206,55 @@ const InstructorsSection = ({
           <h4 className="text-sm font-semibold text-blue-900">
             Huấn luyện viên/ Hướng dẫn viên
           </h4>
-          {allowEdit && (
-            <button
-              className="text-blue-600 hover:text-blue-700"
-              onClick={() => setShowAddModal(true)}
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Edit Mode Toggle Button */}
+            {allowEdit && (
+              <button
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition ${
+                  isEditMode
+                    ? "bg-red-100 text-red-700 hover:bg-red-200"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() => setIsEditMode(!isEditMode)}
+              >
+                {isEditMode ? (
+                  <>
+                    <X className="w-3.5 h-3.5" />
+                    <span>Hủy</span>
+                  </>
+                ) : (
+                  <>
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>Chỉnh sửa</span>
+                  </>
+                )}
+              </button>
+            )}
+            {/* Add Button - only show in edit mode */}
+            {allowEdit && isEditMode && (
+              <button
+                className="text-blue-600 hover:text-blue-700"
+                onClick={() => setShowAddModal(true)}
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
-        {template.mainInstructors.length === 0 ? (
+        {session.mainInstructors.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-2">
             Chưa có HLV/HDV
           </p>
         ) : (
           <div className="space-y-2">
-            {template.mainInstructors.map((instructor) => (
-              <InstructorCard
+            {session.mainInstructors.map((instructor) => (
+              <SessionInstructorCard
                 key={instructor.id}
                 instructor={instructor}
                 onToggleStatus={() =>
-                  onToggleStatus(template.dayOfWeek, instructor.id)
+                  onToggleStatus(session.dayOfWeek, instructor.id)
                 }
+                onToggleAttended={() => onToggleAttended(instructor.id)}
                 onSetShiftHead={() =>
                   handleSetShiftHead(
                     instructor.id,
@@ -202,6 +267,7 @@ const InstructorsSection = ({
                 }}
                 isShiftHead={instructor.id === shiftHeadId}
                 allowEdit={allowEdit}
+                isEditMode={isEditMode}
               />
             ))}
           </div>
@@ -211,4 +277,4 @@ const InstructorsSection = ({
   );
 };
 
-export default InstructorsSection;
+export default SessionInstructorSection;

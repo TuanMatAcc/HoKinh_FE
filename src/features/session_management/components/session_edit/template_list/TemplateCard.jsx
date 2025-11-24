@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import getDay from "../../../../../utils/getVietnameseDay";
 import StudentsSection from "./ClassStudentSection";
 import InstructorsSection from "./ClassCoachInstructorSection";
@@ -17,6 +17,7 @@ const TemplateCard = ({
   const [tempStartTime, setTempStartTime] = useState(template.startTime);
   const [tempEndTime, setTempEndTime] = useState(template.endTime);
   const [timeError, setTimeError] = useState("");
+  const timeInputContainerRef = useRef(null);
 
   const handleTimeClick = () => {
     setIsEditingTime(true);
@@ -41,7 +42,15 @@ const TemplateCard = ({
     return "";
   };
 
-  const handleTimeBlur = () => {
+  const handleTimeBlur = (e) => {
+    // Check if the new focused element is within the time input container
+    const container = timeInputContainerRef.current;
+    if (container && container.contains(e.relatedTarget)) {
+      // If clicking within the time inputs, don't close
+      return;
+    }
+
+    // Otherwise, validate and close
     const error = validateTimes(tempStartTime, tempEndTime);
 
     if (error) {
@@ -93,7 +102,7 @@ const TemplateCard = ({
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-purple-600" />
             {isEditingTime ? (
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1" ref={timeInputContainerRef}>
                 <div className="flex items-center gap-1">
                   <input
                     type="time"
@@ -145,9 +154,9 @@ const TemplateCard = ({
         onAdd={onAdd}
         onToggleRole={onToggleRole}
       />
-      <StudentsSection 
+      <StudentsSection
         onAdd={onAdd}
-        template={template} 
+        template={template}
         onDelete={onDeleteMembers}
       />
       <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">

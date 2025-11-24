@@ -18,81 +18,29 @@ import ClassSessionEdit from "../features/session_management/components/session_
 import Header from "../components/Header";
 import ClassesGrid from "../features/session_management/components/schedule/ClassesGrid";
 import ClassScheduleView from "../features/session_management/components/schedule/ClassScheduleView";
+import { useFacility } from "../hooks/useFacilityData";
 
 const SessionManagement = () => {
   const [view, setView] = useState("list");
   const [selectedFacility, setSelectedFacility] = useState(null);
   const [selectedClass, setSelectedClass] = useState(null);
-  
-  const [hoveredDay, setHoveredDay] = useState(null);
+  console.log(selectedFacility);
 
-  // Mock data
-  const facilities = [
-    {
-      id: 1,
-      name: "Cơ sở Quận 1",
-      classes: [
-        {
-          id: 1,
-          name: "Lớp Võ Cơ Bản A1",
-          daysOfWeek: "2-4-6",
-          startTime: "18:00",
-          endTime: "19:30",
-          latestSession: "2025-12-20",
-        },
-        {
-          id: 2,
-          name: "Lớp Võ Nâng Cao B2",
-          daysOfWeek: "3-5-7",
-          startTime: "19:00",
-          endTime: "20:30",
-          latestSession: "2025-12-15",
-        },
-        {
-          id: 3,
-          name: "Lớp Võ Thiếu Nhi C1",
-          daysOfWeek: "2-4-6",
-          startTime: "16:00",
-          endTime: "17:00",
-          latestSession: "2025-11-30",
-        },
-      ],
-    },
-    { id: 2, name: "Cơ sở Quận 3", classes: [] },
-    { id: 3, name: "Cơ sở Bình Thạnh", classes: [] },
-  ];
-
-  const classes = [
-    {
-      id: 1,
-      name: "Lớp Võ Cơ Bản A1",
-      facilityId: 1,
-      daysOfWeek: "2-4-6",
-      startTime: "18:00",
-      endTime: "19:30",
-      latestSession: "2025-12-20",
-    },
-    {
-      id: 2,
-      name: "Lớp Võ Nâng Cao B2",
-      facilityId: 1,
-      daysOfWeek: "3-5-7",
-      startTime: "19:00",
-      endTime: "20:30",
-      latestSession: "2025-12-15",
-    },
-    {
-      id: 3,
-      name: "Lớp Võ Thiếu Nhi C1",
-      facilityId: 1,
-      daysOfWeek: "2-4-6",
-      startTime: "16:00",
-      endTime: "17:00",
-      latestSession: "2025-11-30",
-    },
-  ];
+  const {data: facilities} = useFacility();
 
   const filteredClasses = selectedFacility ? selectedFacility.classes : [];
+
+  const handleFacilityChange = (e) => {
+    const value = e.target.value;
+
+    if (value === "") {
+      setSelectedFacility(null);
+      return;
+    }
+
+    const id = Number(value);
+    setSelectedFacility(facilities?.data.find((fac) => fac.id === id));
+  };
 
   // Classes List View
   if (view === "list") {
@@ -112,14 +60,12 @@ const SessionManagement = () => {
                 Lọc Theo Cơ Sở
               </label>
               <select
-                defaultValue={""}
-                onChange={(e) => setSelectedFacility(facilities.find(
-                  fac => fac.id === parseInt(e.target.value)
-                ))}
+                value= {selectedFacility ? selectedFacility.id : ""}
+                onChange={handleFacilityChange}
                 className="w-full md:w-64 px-4 py-2 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500"
               >
                 <option value="">Chọn cơ sở</option>
-                {facilities.map((facility) => (
+                {facilities?.data.map((facility) => (
                   <option key={facility.id} value={facility.id}>
                     {facility.name}
                   </option>
@@ -145,7 +91,6 @@ const SessionManagement = () => {
       </div>
     );
   }
-
   // Weekly daysOfWeek View
 
   if (view === "schedule") {
@@ -156,7 +101,7 @@ const SessionManagement = () => {
     />;
   }
 
-  return <ClassSessionEdit setView={setView} />;
+  return <ClassSessionEdit setView={setView} facilities={facilities?.data}/>;
 };
 
 export default SessionManagement;

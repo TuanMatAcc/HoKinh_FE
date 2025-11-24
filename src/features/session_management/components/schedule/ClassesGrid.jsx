@@ -1,10 +1,8 @@
-import getDay from "../../../../utils/getVietnameseDay"; 
-import {
-  Calendar,
-  Clock,
-} from "lucide-react";
+import { getStudyHour } from "../../../../utils/formatDateAndTimeType";
+import getDay from "../../../../utils/getVietnameseDay";
+import { Calendar, Clock } from "lucide-react";
 
-const ClassesGrid = ({setSelectedClass, setView, filteredClasses}) => (
+const ClassesGrid = ({ setSelectedClass, setView, filteredClasses }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {filteredClasses.map((cls) => (
       <div
@@ -36,7 +34,7 @@ const ClassesGrid = ({setSelectedClass, setView, filteredClasses}) => (
             <div>
               <p className="text-sm text-gray-600 mb-1">Giờ học</p>
               <p className="text-blue-900 font-medium">
-                {cls.startTime} - {cls.endTime}
+                {getStudyHour(cls.startHour)} - {getStudyHour(cls.endHour)}
               </p>
             </div>
           </div>

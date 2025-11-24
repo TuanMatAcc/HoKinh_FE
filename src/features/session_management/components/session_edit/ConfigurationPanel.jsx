@@ -52,6 +52,7 @@ const ConfigurationPanel = ({
   setDateRange,
   maxDaysPeriod,
   isCreateDisabled,
+  handleCreateTemplate
 }) => {
   const selectedClassData = selectedClass;
 
@@ -171,6 +172,7 @@ const ConfigurationPanel = ({
       <button
         className="mt-6 w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
         disabled={isCreateDisabled}
+        onClick={handleCreateTemplate}
       >
         <Plus className="w-5 h-5" />
         Tạo Các Buổi Học

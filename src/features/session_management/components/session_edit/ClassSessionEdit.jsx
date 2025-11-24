@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
-import {
-  ArrowLeft,
-} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowLeft } from "lucide-react";
 import Button from "../../../../components/Button";
 import SessionOverviewPanel from "./SessionOverviewPanel";
 import ConfigurationPanel from "./ConfigurationPanel";
@@ -9,95 +7,23 @@ import DayOfWeekFilter from "./DayOfWeekFilter";
 import ConfirmationModal from "./RemoveTemplateConfirmationModal";
 import TemplatesList from "./template_list/TemplateList";
 import Header from "../../../../components/Header";
-
-// Mock data
-const facilities = [
-  {
-    id: 1,
-    name: "Cơ sở Quận 1",
-    classes: [
-      {
-        id: 1,
-        name: "Lớp Võ Cơ Bản A1",
-        daysOfWeek: "2-4-6",
-        startTime: "18:00",
-        endTime: "19:30",
-        sessionsUpdatedAt: "2025-11-17 14:30:00",
-        latestSession: "2025-12-30",
-      },
-      {
-        id: 2,
-        name: "Lớp Võ Nâng Cao B2",
-        daysOfWeek: "3-5-7",
-        startTime: "19:00",
-        endTime: "20:30",
-        sessionsUpdatedAt: "2025-11-16 10:15:00",
-        latestSession: "2025-12-28",
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "Cơ sở Quận 3",
-    classes: [
-      {
-        id: 3,
-        name: "Lớp Võ Thiếu Nhi C1",
-        daysOfWeek: "2-4",
-        startTime: "17:00",
-        endTime: "18:00",
-        sessionsUpdatedAt: "2025-11-15 09:00:00",
-        latestSession: "2025-12-25",
-      },
-    ],
-  },
-  { id: 3, name: "Cơ sở Bình Thạnh", classes: [] },
-];
-
-// const defaultTemplate = {
-//   dayOfWeek: day,
-//   startTime: selectedClassData.startTime,
-//   endTime: selectedClassData.endTime,
-//   mainInstructors: [
-//     {
-//       id: 1,
-//       name: "Nguyễn Văn A",
-//       roleInSession: "coach",
-//       status: "available",
-//     },
-//     {
-//       id: 2,
-//       name: "Trần Thị B",
-//       roleInSession: "instructor",
-//       status: "available",
-//     },
-//   ],
-//   substituteInstructors: [
-//     {
-//       id: 3,
-//       name: "Nguyễn Văn C",
-//       roleInSession: "coach",
-//       status: "available",
-//     },
-//     {
-//       id: 4,
-//       name: "Trần Thị D",
-//       roleInSession: "instructor",
-//       status: "available",
-//     },
-//   ],
-//   students: [
-//     { id: 1, name: "Võ sinh Lê Văn C", isRegular: true },
-//     { id: 2, name: "Võ sinh Phạm Thị D", isRegular: true },
-//     { id: 3, name: "Võ sinh Hoàng Văn E", isRegular: false },
-//   ],
-// };
+import AnnouncementUI from "../../../../components/Announcement";
+import { ThreeDotLoader } from "../../../../components/ActionFallback";
+import { ConfirmDialog } from "../../../../components/ConfirmDialog";
+import { sessionService } from "../../../../services/session_api";
+import { getDayOfWeek } from "../../../../utils/formatDateAndTimeType";
 
 // Main Component
-const ClassSessionEdit = ({ setView }) => {
+const ClassSessionEdit = ({ setView, facilities }) => {
+  const today = new Date().toISOString().slice(0, 10);
+
   const [selectedFacility, setSelectedFacility] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const errorMessage = useRef("");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [inProgress, setInProgress] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
-  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [dateRange, setDateRange] = useState({ start: today, end: today });
   const [selectedDays, setSelectedDays] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [confirmModal, setConfirmModal] = useState({
@@ -117,24 +43,39 @@ const ClassSessionEdit = ({ setView }) => {
 
       return {
         dayOfWeek: day,
-        startTime: selectedClassData.startTime,
-        endTime: selectedClassData.endTime,
+        startTime: selectedClassData.startHour,
+        endTime: selectedClassData.endHour,
         mainInstructors: [
           {
             id: 1,
             name: "Nguyễn Văn A",
-            roleInSession: "coach",
+            roleInSession: "assistant",
           },
           {
             id: 2,
             name: "Trần Thị B",
-            roleInSession: "instructor",
+            roleInSession: "leader",
           },
         ],
         students: [
-          { id: 1, name: "Võ sinh Lê Văn C", roleInSession: 'student',isRegular: true },
-          { id: 2, name: "Võ sinh Phạm Thị D", roleInSession: 'student',isRegular: true },
-          { id: 3, name: "Võ sinh Hoàng Văn E", roleInSession: 'student',isRegular: false },
+          {
+            id: 1,
+            name: "Võ sinh Lê Văn C",
+            roleInSession: "student",
+            isRegular: true,
+          },
+          {
+            id: 2,
+            name: "Võ sinh Phạm Thị D",
+            roleInSession: "student",
+            isRegular: true,
+          },
+          {
+            id: 3,
+            name: "Võ sinh Hoàng Văn E",
+            roleInSession: "student",
+            isRegular: false,
+          },
         ],
       };
     });
@@ -163,8 +104,7 @@ const ClassSessionEdit = ({ setView }) => {
     setConfirmModal({ isOpen: false, day: null });
   };
   console.log(templates);
-  const toggleInstructorStatus = (dayOfWeek, instructorId) => { 
-    
+  const toggleInstructorStatus = (dayOfWeek, instructorId) => {
     setTemplates((prevTemplates) =>
       prevTemplates.map((template) => {
         if (template.dayOfWeek === dayOfWeek) {
@@ -180,7 +120,7 @@ const ClassSessionEdit = ({ setView }) => {
                 }
                 return {
                   ...instructor,
-                  roleInSession: "assistant"
+                  roleInSession: "assistant",
                 };
               }
               return instructor;
@@ -244,9 +184,10 @@ const ClassSessionEdit = ({ setView }) => {
 
   const onAddMembers = (dayOfWeek, member, role) => {
     console.log(member);
-    const exist = templates.find(template => dayOfWeek === template.dayOfWeek)[role]
-                           .find(mem => mem.id === member.id);
-    if(!exist) {
+    const exist = templates
+      .find((template) => dayOfWeek === template.dayOfWeek)
+      [role].find((mem) => mem.id === member.id);
+    if (!exist) {
       setTemplates((prevTemplates) =>
         prevTemplates.map((template) => {
           if (template.dayOfWeek === dayOfWeek) {
@@ -264,7 +205,7 @@ const ClassSessionEdit = ({ setView }) => {
                       id: member.id,
                       name: member.name,
                       roleInSession: "student",
-                      isRegular: member.classId === selectedClass.id
+                      isRegular: member.classId === selectedClass.id,
                     },
               ],
             };
@@ -272,11 +213,12 @@ const ClassSessionEdit = ({ setView }) => {
           return template;
         })
       );
+    } else {
+      throw new Error(
+        "Người dùng " + member.name + " đã được thêm vào template"
+      );
     }
-    else {
-      throw new Error("Người dùng " + member.name + " đã được thêm vào template");
-    }
-  }
+  };
 
   const onDeleteMembers = (dayOfWeek, memberId) => {
     setTemplates((prevTemplates) =>
@@ -295,13 +237,13 @@ const ClassSessionEdit = ({ setView }) => {
         return template;
       })
     );
-  }
+  };
 
   const handleTimeChange = (dayOfWeek, startTime, endTime) => {
     setTemplates((prevTemplates) =>
       prevTemplates.map((template) =>
         template.dayOfWeek === dayOfWeek
-          ? { ...template, startTime, endTime }
+          ? { ...template, startTime: startTime, endTime: endTime }
           : template
       )
     );
@@ -321,56 +263,142 @@ const ClassSessionEdit = ({ setView }) => {
   const isCreateDisabled =
     validateDateRange() || !selectedClass || !dateRange.start || !dateRange.end;
 
+  const prepareTemplateData = () => {
+    return templates.map((template) => ({
+      ...template,
+      dayOfWeek: parseInt(template.dayOfWeek) - 1,
+      users: [...template.mainInstructors, ...template.students],
+    }));
+  };
+
+  const handleCreateTemplate = async () => {
+    setShowConfirmDialog(false);
+    if (templates.length === 0) {
+      setShowError(true);
+      errorMessage.current =
+        "Bạn chưa chọn template nào để tiến hành tạo buổi học";
+      return;
+    }
+    setInProgress(true);
+    // API Call Creating Sessions ***TODO***
+    try {
+      const templateData = prepareTemplateData();
+      console.log(templateData);
+      await sessionService.createSessions(
+        selectedClass.id,
+        dateRange.start,
+        dateRange.end,
+        templateData
+      );
+      setInProgress(false);
+    } catch (error) {
+      if (error?.response) {
+        errorMessage.current = error.response.data;
+        setShowError(true);
+      } else {
+        errorMessage.current = error.response;
+        setShowError(true);
+      }
+      setInProgress(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <Header
-          title={"Quản Lý Buổi Học"}
-          description={"Thêm và quản lý các buổi học cho lớp"}
-          backButton={
-            <Button
-              title={"Quay lại danh sách lớp"}
-              icon={<ArrowLeft className="w-5 h-5" />}
-              handleOnClick={() => setView("list")}
-              background={false}
-              font="font-medium"
-            />
+    <>
+      {showError && (
+        <AnnouncementUI
+          message={errorMessage.current}
+          setVisible={setShowError}
+        />
+      )}
+      {showConfirmDialog && (
+        <ConfirmDialog
+          title={
+            <p>
+              Từ{" "}
+              <span className=" inline-block text-xl text-blue-700">
+                {getDayOfWeek(dateRange.start) +
+                  " (" +
+                  dateRange.start.split("-").join("/") +
+                  ")"}
+              </span>{" "}
+              đến{" "}
+              <span className=" inline-block text-xl text-blue-700">
+                {getDayOfWeek(dateRange.end) +
+                  " (" +
+                  dateRange.end.split("-").join("/") +
+                  ")"}
+              </span>{" "}
+            </p>
           }
+          askDetail={
+            <span>
+              Bạn có chắc chắn muốn tạo các buổi học trong khoảng thời gian trên
+              cho lớp <strong>{selectedClass.name}</strong> không ?
+            </span>
+          }
+          handleCancel={() => setShowConfirmDialog(false)}
+          handleConfirm={handleCreateTemplate}
         />
-        <SessionOverviewPanel facilities={facilities} />
-        <ConfigurationPanel
-          facilities={facilities}
-          selectedFacility={selectedFacility}
-          setSelectedFacility={setSelectedFacility}
-          selectedClass={selectedClass}
-          setSelectedClass={setSelectedClass}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          maxDaysPeriod={maxDaysPeriod}
-          isCreateDisabled={isCreateDisabled}
+      )}
+      {inProgress && (
+        <ThreeDotLoader
+          size="lg"
+          color="blue"
+          message={"Đang tiến hành tạo buổi học"}
         />
-        <DayOfWeekFilter
-          selectedClass={selectedClass}
-          selectedDays={selectedDays}
-          onToggleDay={handleToggleDay}
-          onRemoveDay={handleRemoveDay}
-        />
-        <TemplatesList
-          templates={templates}
-          onToggleStatus={toggleInstructorStatus}
-          onToggleRole={toggleInstructorRole}
-          onTimeChange={handleTimeChange}
-          onDeleteMembers= {onDeleteMembers}
-          onAddMembers={onAddMembers}
-        />
-        <ConfirmationModal
-          isOpen={confirmModal.isOpen}
-          dayOfWeek={confirmModal.day}
-          onConfirm={confirmRemoveDay}
-          onCancel={() => setConfirmModal({ isOpen: false, day: null })}
-        />
+      )}
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-100 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Header
+            title={"Quản Lý Buổi Học"}
+            description={"Thêm và quản lý các buổi học cho lớp"}
+            backButton={
+              <Button
+                title={"Quay lại danh sách lớp"}
+                icon={<ArrowLeft className="w-5 h-5" />}
+                handleOnClick={() => setView("list")}
+                background={false}
+                font="font-medium"
+              />
+            }
+          />
+          <SessionOverviewPanel facilities={facilities} />
+          <ConfigurationPanel
+            facilities={facilities}
+            selectedFacility={selectedFacility}
+            setSelectedFacility={setSelectedFacility}
+            selectedClass={selectedClass}
+            setSelectedClass={setSelectedClass}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            maxDaysPeriod={maxDaysPeriod}
+            isCreateDisabled={isCreateDisabled}
+            handleCreateTemplate={() => setShowConfirmDialog(true)}
+          />
+          <DayOfWeekFilter
+            selectedClass={selectedClass}
+            selectedDays={selectedDays}
+            onToggleDay={handleToggleDay}
+            onRemoveDay={handleRemoveDay}
+          />
+          <TemplatesList
+            templates={templates}
+            onToggleStatus={toggleInstructorStatus}
+            onToggleRole={toggleInstructorRole}
+            onTimeChange={handleTimeChange}
+            onDeleteMembers={onDeleteMembers}
+            onAddMembers={onAddMembers}
+          />
+          <ConfirmationModal
+            isOpen={confirmModal.isOpen}
+            dayOfWeek={confirmModal.day}
+            onConfirm={confirmRemoveDay}
+            onCancel={() => setConfirmModal({ isOpen: false, day: null })}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
