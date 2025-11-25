@@ -22,7 +22,7 @@ const ClickedSessionModal = ({
       setClickedSession((clkSession) => ({
         ...clkSession,
         mainInstructors: clkSession.mainInstructors.map((instructor) => {
-          if (instructor.id === instructorId) {
+          if (instructor.userId === instructorId) {
             if (instructor.roleInSession !== "off") {
               return {
                 ...instructor,
@@ -43,7 +43,7 @@ const ClickedSessionModal = ({
       setClickedSession((clkSession) => ({
         ...clkSession,
         mainInstructors: clkSession.mainInstructors.map((instructor) =>
-          instructor.id === memberId
+          instructor.userId === memberId
             ? {
                 ...instructor,
                 attended: !instructor.attended,
@@ -51,7 +51,7 @@ const ClickedSessionModal = ({
             : instructor
         ),
         students: clkSession.students.map((student) =>
-          student.id === memberId
+          student.userId === memberId
             ? {
                 ...student,
                 attended: !student.attended,
@@ -71,7 +71,7 @@ const ClickedSessionModal = ({
         ...clkSession,
         mainInstructors: clkSession.mainInstructors.map((instructor) => {
           // If this is the instructor being clicked
-          if (instructor.id === instructorId) {
+          if (instructor.userId === instructorId) {
             // If they are currently the shift head, remove the role
             if (isSettingShiftHead) {
               return {
@@ -105,16 +105,16 @@ const ClickedSessionModal = ({
       setClickedSession((clkSession) => ({
         ...clickedSession,
         mainInstructors: clickedSession.mainInstructors.filter(
-          (instructor) => instructor.id !== memberId
+          (instructor) => instructor.userId !== memberId
         ),
         students: clickedSession.students.filter(
-          (student) => student.id !== memberId
+          (student) => student.userId !== memberId
         ),
       }));
     };
 
     const onAddMembers = (dayOfWeek, member, role) => {
-      const exist = clickedSession[role].find((mem) => mem.id === member.id);
+      const exist = clickedSession[role].find((mem) => mem.userId === member.userId);
       if (!exist) {
         setClickedSession((clkSession) => ({
           ...clkSession,
@@ -122,12 +122,12 @@ const ClickedSessionModal = ({
             ...clkSession[role],
             role === "mainInstructors"
               ? {
-                  id: member.id,
+                  id: member.userId,
                   name: member.name,
                   roleInSession: "assistant",
                 }
               : {
-                  id: member.id,
+                  id: member.userId,
                   name: member.name,
                   roleInSession: "student",
                   isRegular: member.classId === selectedClass.id,
@@ -175,9 +175,7 @@ const ClickedSessionModal = ({
           onTimeChange={handleTimeChange}
           onAdd={onAddMembers}
           onDeleteMembers={onDeleteMembers}
-          onReportChange={() => {}}
-          onTopicChange={() => {}}
-          onVideoLinkChange={() => {}}
+          onTextFieldChange={() => {}}
           onSaveSession={onSaveSession}
           onToggleAttended={onToggleAttended}
         />

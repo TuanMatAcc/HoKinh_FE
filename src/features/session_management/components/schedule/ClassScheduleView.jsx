@@ -12,118 +12,46 @@ import WeekNavigation from "./WeekNavigation";
 import { getCurrentWeekDays } from "../../../../data/getCurrentWeekDays";
 import { generateWeekFromDate } from "../../../../data/generateWeekDaysFromDate";
 import SuccessAnnouncement from "../../../../components/SuccessAnnouncement";
-import { convertDateInputToVN } from "../../../../utils/formatDateAndTimeType";
+import { convertDateInputToVN, getStudyHour } from "../../../../utils/formatDateAndTimeType";
 import SessionCard from "./SessionCard";
 import AnnouncementUI from "../../../../components/Announcement";
+import { useClassSessionInRange, useStudentInSession } from "../../../../hooks/useClassSessionInRange";
+import Button from "../../../../components/Button";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
+  const queryClient = useQueryClient();
   // Weekly daysOfWeek data
   const [weekDays, setWeekDays] = useState(getCurrentWeekDays());
   const [selectedDate, setSelectedDate] = useState(weekDays[0].date);
   const [clickedSession, setClickedSession] = useState(null);
   const [sessionDetail, setSessionDetail] = useState(null);
+  const { data: students } = useStudentInSession({
+    sessionId: sessionDetail?.id
+  });
   const [showSuccess, setShowSuccess] = useState(null);
   const [showError, setShowError] = useState(null);
   const errorMessage = useRef("");
-  const [sessions, setSessions] = useState([
-    {
-      id: 1,
-      date: "2025-11-04",
-      startTime: "18:00",
-      endTime: "19:30",
-      status: 1,
-      mainInstructors: [
-        {
-          id: 1,
-          name: "Nguyễn Văn A",
-          roleInSession: "leader",
-          attended: true,
-        },
-        {
-          id: 2,
-          name: "Trần Thị B",
-          roleInSession: "assistant",
-          attended: true,
-        },
-      ],
-      students: [
-        {
-          id: "u0022",
-          name: "Trần Thị Huhu",
-          roleInSession: "student",
-          review: "",
-          attended: true,
-          classId: 2,
-          checkinTime: "",
-        },
-      ],
-      topic: "YoGa",
-      videoLink: "https://www.youtube.com",
-      report: "hu",
-    },
-    {
-      id: 2,
-      date: "2025-11-06",
-      startTime: "18:00",
-      endTime: "19:30",
-      status: 0,
-      mainInstructors: [
-        {
-          id: 1,
-          name: "Nguyễn Văn A",
-          roleInSession: "assistant",
-        },
-      ],
-      students: [
-        {
-          id: "u0022",
-          name: "Trần Thị Huhu",
-          roleInSession: "student",
-          review: "",
-          attended: true,
-          classId: 2,
-          checkinTime: "",
-        },
-      ],
-      topic: "YoGa",
-      videoLink: "https://www.youtube.com",
-      report: "hu",
-    },
-    {
-      id: 3,
-      date: "2025-11-08",
-      startTime: "18:00",
-      endTime: "19:30",
-      status: 0,
-      mainInstructors: [
-        {
-          id: 2,
-          name: "Trần Thị B",
-          roleInSession: "assistant",
-        },
-      ],
-      students: [
-        {
-          id: "u0022",
-          name: "Trần Thị Huhu",
-          roleInSession: "student",
-          review: "",
-          attended: true,
-          classId: 2,
-          checkinTime: "",
-        },
-      ],
-      topic: "YoGa",
-      videoLink: "https://www.youtube.com",
-      report: "hu",
-    },
-  ]);
+
+  const { data: sessions } = useClassSessionInRange({
+    startDate: weekDays[0].date,
+    endDate: weekDays[weekDays.length - 1].date,
+    classId: selectedClass.id,
+  });
+  console.log(weekDays);
+  console.log(sessions);
 
   useEffect(() => {
     if (selectedDate) {
       setWeekDays(generateWeekFromDate(selectedDate));
     }
-  }, [selectedDate]);
+    if(sessionDetail) {
+      setSessionDetail(sessionDtl => ({
+        ...sessionDtl,
+        students: students?.data ? students.data : []
+      }))
+    }
+  }, [selectedDate, students]);
 
   const stepAWeek = ({direction}) => weekDays.map((item) => {
       const date = new Date(item.date); // Convert string to Date
@@ -149,14 +77,24 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
 
   const onSaveSession = () => {
     const err = validateClickedSession();
-    if(!err) {
-      setSessions((prev) =>
-        prev.map((s) => (s.id === clickedSession.id ? clickedSession : s))
+    if (!err) {
+      queryClient.setQueryData(
+        [
+          "sessions",
+          selectedClass.id,
+          weekDays[0].date,
+          weekDays[weekDays.length - 1].date,
+        ],
+        (prev) => ({
+          ...prev,
+          data: prev.data.map((s) =>
+            s.id === clickedSession.id ? clickedSession : s
+          ),
+        })
       );
       setShowSuccess(clickedSession.date);
       setClickedSession(null);
-    }
-    else {
+    } else {
       errorMessage.current = err;
       setShowError(true);
     }
@@ -164,17 +102,34 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
 
   const onSaveFullSession = () => {
     const err = validateSessionDetail();
-    if(!err) {
-      setSessions((prev) =>
-        prev.map((s) => (s.id === sessionDetail.id ? sessionDetail : s))
+    if (!err) {
+      queryClient.setQueryData(
+        [
+          "sessions",
+          selectedClass.id,
+          weekDays[0].date,
+          weekDays[weekDays.length - 1].date,
+        ],
+        (prev) => ({
+          ...prev,
+          data: prev.data.map((s) =>
+            s.id === sessionDetail.id ? sessionDetail : s
+          ),
+        })
       );
       setShowSuccess(sessionDetail.date);
       setSessionDetail(null);
-    }
-    else {
+    } else {
       errorMessage.current = err;
       setShowError(true);
     }
+    queryClient.setQueryData(
+      ["session", "students", sessionDetail?.id],
+      (prev) => ({
+        ...prev,
+        data: sessionDetail.students,
+      })
+    );
   };
 
   const validateSessionDetail = () => {
@@ -205,7 +160,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     setSessionDetail((sessionDtl) => ({
       ...sessionDtl,
       mainInstructors: sessionDtl.mainInstructors.map((instructor) => {
-        if (instructor.id === instructorId) {
+        if (instructor.userId === instructorId) {
           if (instructor.roleInSession !== "off") {
             return {
               ...instructor,
@@ -222,13 +177,20 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     }));
   };
 
+  const onSessionFieldChange = (name, value) => {
+    setSessionDetail((sessionDtl) => ({
+      ...sessionDtl,
+      [name]: value
+  }));
+  }
+
   // Updated toggleInstructorRole function with proper shift head logic
   const onToggleRole = (dayOfWeek, instructorId, isSettingShiftHead) => {
     setSessionDetail((sessionDtl) => ({
       ...sessionDtl,
       mainInstructors: sessionDtl.mainInstructors.map((instructor) => {
         // If this is the instructor being clicked
-        if (instructor.id === instructorId) {
+        if (instructor.userId === instructorId) {
           // If they are currently the shift head, remove the role
           if (isSettingShiftHead) {
             return {
@@ -262,16 +224,16 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     setSessionDetail((sessionDtl) => ({
       ...sessionDtl,
       mainInstructors: sessionDtl.mainInstructors.filter(
-        (instructor) => instructor.id !== memberId
+        (instructor) => instructor.userId !== memberId
       ),
       students: sessionDtl.students.filter(
-        (student) => student.id !== memberId
+        (student) => student.userId !== memberId
       ),
     }));
   };
 
   const onAddMembers = (dayOfWeek, member, role) => {
-    const exist = sessionDetail[role].find((mem) => mem.id === member.id);
+    const exist = sessionDetail[role].find((mem) => mem.userId === member.userId);
     if (!exist) {
       setSessionDetail((sessionDtl) => ({
         ...sessionDtl,
@@ -279,12 +241,12 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
           ...sessionDtl[role],
           role === "mainInstructors"
             ? {
-                id: member.id,
+                id: member.userId,
                 name: member.name,
                 roleInSession: "assistant",
               }
             : {
-                id: member.id,
+                id: member.userId,
                 name: member.name,
                 roleInSession: "student",
                 isRegular: member.classId === selectedClass.id,
@@ -299,11 +261,10 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
   };
 
   const onSesionMemberDetailChange = (memberId, editData) => {
-    console.log(editData);
     setSessionDetail((sessionDtl) => ({
       ...sessionDtl,
       mainInstructors: sessionDtl.mainInstructors.map((instructor) =>
-        instructor.id === memberId
+        instructor.userId === memberId
           ? {
               ...instructor,
               ...editData
@@ -311,7 +272,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
           : instructor
       ),
       students: sessionDtl.students.map((student) =>
-        student.id === memberId
+        student.userId === memberId
           ? {
               ...student,
               ...editData
@@ -325,7 +286,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     setSessionDetail((sessionDtl) => ({
       ...sessionDtl,
       mainInstructors: sessionDtl.mainInstructors.map((instructor) =>
-        instructor.id === memberId
+        instructor.userId === memberId
           ? {
               ...instructor,
               attended: !instructor.attended,
@@ -333,13 +294,23 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
           : instructor
       ),
       students: sessionDtl.students.map((student) =>
-        student.id === memberId
+        student.userId === memberId
           ? {
               ...student,
               attended: !student.attended,
             }
           : student
       ),
+    }));
+  }
+
+  const updateStudents = (memberId, name, value) => {
+    queryClient.setQueryData(['session', 'students', sessionDetail?.id], prev => ({
+      ...prev,
+      data: prev.data.map((student) => student.id === memberId ? ({
+        ...student,
+        [name]: value
+      }) : student)
     }));
   }
 
@@ -363,18 +334,52 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
         />
       )}
       {sessionDetail ? (
-        <SessionCard
-          session={sessionDetail}
-          isBrief={false}
-          onToggleRole={onToggleRole}
-          onToggleAttended={onToggleAttended}
-          onAdd={onAddMembers}
-          onToggleStatus={onToggleStatus}
-          onDeleteMembers={onDeleteMembers}
-          onTimeChange={handleTimeChange}
-          onSesionMemberDetailChange={onSesionMemberDetailChange}
-          onSaveSession={onSaveFullSession}
-        />
+        <>
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <button
+              onClick={() => {
+                setSessionDetail(null);
+              }}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="font-medium">Quay lại danh sách lớp</span>
+            </button>
+            <h1 className="text-3xl font-bold text-blue-900 mb-2">
+              {selectedClass.name}
+            </h1>
+            <div className="flex items-center gap-4 text-blue-600">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>
+                  {selectedClass.daysOfWeek
+                    .split("-")
+                    .map((d) => getDay(d))
+                    .join(", ")}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span>
+                  {getStudyHour(selectedClass.startHour)} - {getStudyHour(selectedClass.endHour)}
+                </span>
+              </div>
+            </div>
+          </div>
+          <SessionCard
+            session={sessionDetail}
+            isBrief={false}
+            onToggleRole={onToggleRole}
+            onToggleAttended={onToggleAttended}
+            onAdd={onAddMembers}
+            onToggleStatus={onToggleStatus}
+            onDeleteMembers={onDeleteMembers}
+            onTimeChange={handleTimeChange}
+            onSesionMemberDetailChange={onSesionMemberDetailChange}
+            onSaveSession={onSaveFullSession}
+            onTextFieldChange={onSessionFieldChange}
+          />
+        </>
       ) : (
         <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-100 p-6">
           <div className="max-w-7xl mx-auto">
@@ -406,7 +411,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   <span>
-                    {selectedClass.startTime} - {selectedClass.endTime}
+                    {getStudyHour(selectedClass.startHour)} - {getStudyHour(selectedClass.endHour)}
                   </span>
                 </div>
               </div>
@@ -424,7 +429,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
             {/* Weekly Grid */}
             <WeeklySessionsGrid
               selectedClass={selectedClass}
-              sessions={sessions}
+              sessions={sessions?.data ? sessions.data : []}
               weekDays={weekDays}
               setClickedSession={setClickedSession}
               clickedSession={clickedSession}

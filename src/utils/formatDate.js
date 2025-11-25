@@ -1,4 +1,4 @@
-const formatDate = ({dateString, showTime, region}) => {
+const formatDate = ({dateString, showTime=true, region}) => {
     if(showTime) {
         return new Date(dateString).toLocaleDateString(region, {
             year: 'numeric',

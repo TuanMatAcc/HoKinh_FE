@@ -4,7 +4,7 @@ const Header = ({ title, description, backButton, functionButton }) => (
     <div>
       {backButton}
       <h1 className="text-3xl font-bold text-blue-900 mb-2">{title}</h1>
-      <p className="text-blue-600">{description}</p>
+      <div>{description}</div>
     </div>
     {functionButton}
   </div>

@@ -8,5 +8,17 @@ export const sessionService = {
             {
                 params: {facilityClassId, startDate, endDate}
             }
-        )
+        ),
+    getManagementSession: (startDate, endDate, classId) => api.get(
+        '/api/session/session-management',
+        {params: {startDate, endDate, classId}}
+    ),
+    getStudentsInSession: (sessionId) => api.get(
+        `/api/session/${sessionId}/students-management`
+    ),
+    updateSessionAndUser: (session) => 
+        api.put(
+            '/api/session/update-management', 
+            session
+        ),
 }

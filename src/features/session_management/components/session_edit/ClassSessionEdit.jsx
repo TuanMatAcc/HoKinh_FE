@@ -12,6 +12,7 @@ import { ThreeDotLoader } from "../../../../components/ActionFallback";
 import { ConfirmDialog } from "../../../../components/ConfirmDialog";
 import { sessionService } from "../../../../services/session_api";
 import { getDayOfWeek } from "../../../../utils/formatDateAndTimeType";
+import { useActiveClassMembers } from "../../../../hooks/useClassMembers";
 
 // Main Component
 const ClassSessionEdit = ({ setView, facilities }) => {
@@ -23,6 +24,8 @@ const ClassSessionEdit = ({ setView, facilities }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [inProgress, setInProgress] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
+  const { data: users } = useActiveClassMembers({ classId: selectedClass?.id });
+  console.log(users);
   const [dateRange, setDateRange] = useState({ start: today, end: today });
   const [selectedDays, setSelectedDays] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -45,44 +48,59 @@ const ClassSessionEdit = ({ setView, facilities }) => {
         dayOfWeek: day,
         startTime: selectedClassData.startHour,
         endTime: selectedClassData.endHour,
-        mainInstructors: [
-          {
-            id: 1,
-            name: "Nguyễn Văn A",
+        // mainInstructors: [
+        //   {
+        //     id: 1,
+        //     name: "Nguyễn Văn A",
+        //     roleInSession: "assistant",
+        //   },
+        //   {
+        //     id: 2,
+        //     name: "Trần Thị B",
+        //     roleInSession: "leader",
+        //   },
+        // ],
+        mainInstructors: Object.entries(users)
+          .filter(([key]) => key !== "student")
+          .map(([_, value]) => ({
+            id: value[0].id,
+            name: value[0].name,
             roleInSession: "assistant",
-          },
-          {
-            id: 2,
-            name: "Trần Thị B",
-            roleInSession: "leader",
-          },
-        ],
-        students: [
-          {
-            id: 1,
-            name: "Võ sinh Lê Văn C",
-            roleInSession: "student",
-            isRegular: true,
-          },
-          {
-            id: 2,
-            name: "Võ sinh Phạm Thị D",
-            roleInSession: "student",
-            isRegular: true,
-          },
-          {
-            id: 3,
-            name: "Võ sinh Hoàng Văn E",
-            roleInSession: "student",
-            isRegular: false,
-          },
-        ],
+          })),
+        // students: [
+        //   {
+        //     id: 1,
+        //     name: "Võ sinh Lê Văn C",
+        //     roleInSession: "student",
+        //     isRegular: true,
+        //   },
+        //   {
+        //     id: 2,
+        //     name: "Võ sinh Phạm Thị D",
+        //     roleInSession: "student",
+        //     isRegular: true,
+        //   },
+        //   {
+        //     id: 3,
+        //     name: "Võ sinh Hoàng Văn E",
+        //     roleInSession: "student",
+        //     isRegular: false,
+        //   },
+        // ],
+        students: users["student"]
+          ? users["student"].map((stu) => ({
+              id: stu.id,
+              name: stu.name,
+              roleInSession: "student",
+              isRegular: true,
+            }))
+          : [],
       };
     });
 
     // Sort by day: Ascending
     newTemplates.sort((temp1, temp2) => temp1.dayOfWeek - temp2.dayOfWeek);
-
+    console.log(newTemplates);
     setTemplates(newTemplates);
   };
 
@@ -352,7 +370,7 @@ const ClassSessionEdit = ({ setView, facilities }) => {
         <div className="max-w-7xl mx-auto">
           <Header
             title={"Quản Lý Buổi Học"}
-            description={"Thêm và quản lý các buổi học cho lớp"}
+            description={<p className="text-blue-600">Thêm và quản lý các buổi học cho lớp</p>}
             backButton={
               <Button
                 title={"Quay lại danh sách lớp"}

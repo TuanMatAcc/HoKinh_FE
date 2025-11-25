@@ -14,6 +14,7 @@ import { getStatus } from "../../../../utils/getVietnameseRole";
 import { ConfirmDialog } from "../../../../components/ConfirmDialog";
 import UserSearchModal from "../../../../components/UserSearchModal";
 import AnnouncementUI from "../../../../components/Announcement";
+import SessionMemberDetailModal from "./SessionMemberDetailModal";
 
 // Instructor Card Component
 const SessionInstructorCard = ({
@@ -23,13 +24,15 @@ const SessionInstructorCard = ({
   isShiftHead,
   onDelete,
   onToggleAttended,
+  setSelectedInstructor,
   showStatus = true,
   allowEdit = false,
   isEditMode = false,
 }) => {
+  
   return (
     <div
-      title={instructor.id}
+      title={instructor.userId}
       className={`flex items-center justify-between bg-white rounded p-2 transition ${
         isShiftHead && isEditMode ? "ring-2 ring-amber-400 shadow-sm" : ""
       }`}
@@ -122,12 +125,21 @@ const SessionInstructorCard = ({
 
         {/* Delete button (edit mode only) */}
         {isEditMode && (
-          <button
-            className="text-red-600 hover:text-red-700 p-1"
-            onClick={onDelete}
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
+          <>
+            <button
+              className="text-blue-600 hover:text-blue-700 p-1"
+              onClick={() => setSelectedInstructor(instructor)}
+              title="Xem chi tiết"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              className="text-red-600 hover:text-red-700 p-1"
+              onClick={onDelete}
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </>
         )}
       </div>
     </div>
@@ -142,6 +154,7 @@ const SessionInstructorSection = ({
   onToggleAttended,
   onDelete,
   onAdd,
+  handleSaveMemberDetail,
   allowEdit = true,
 }) => {
   const [confirmDeleteInstructor, setConfirmDeleteInstructor] = useState(false);
@@ -149,12 +162,13 @@ const SessionInstructorSection = ({
   const [isEditMode, setIsEditMode] = useState(false);
   const deletedId = useRef(null);
   const [showError, setShowError] = useState(false);
+  const [selectedInstructor, setSelectedInstructor] = useState(null);
   const errorMessage = useRef("");
 
   // Find the current shift head
   const shiftHeadId = session.mainInstructors.find(
     (i) => i.roleInSession === "leader"
-  )?.id;
+  )?.userId;
 
   const handleSetShiftHead = (instructorId, isCurrentShiftHead) => {
     onToggleRole(session.dayOfWeek, instructorId, isCurrentShiftHead);
@@ -197,6 +211,14 @@ const SessionInstructorSection = ({
             setConfirmDeleteInstructor(false);
             onDelete(session.dayOfWeek, deletedId.current);
           }}
+        />
+      )}
+      {selectedInstructor&& (
+        <SessionMemberDetailModal
+          sessionMember={selectedInstructor}
+          isOpen={!!selectedInstructor}
+          onClose={() => setSelectedInstructor(null)}
+          onSave={handleSaveMemberDetail}
         />
       )}
 
@@ -249,25 +271,26 @@ const SessionInstructorSection = ({
           <div className="space-y-2">
             {session.mainInstructors.map((instructor) => (
               <SessionInstructorCard
-                key={instructor.id}
+                key={instructor.userId}
                 instructor={instructor}
                 onToggleStatus={() =>
-                  onToggleStatus(session.dayOfWeek, instructor.id)
+                  onToggleStatus(session.dayOfWeek, instructor.userId)
                 }
-                onToggleAttended={() => onToggleAttended(instructor.id)}
+                onToggleAttended={() => onToggleAttended(instructor.userId)}
                 onSetShiftHead={() =>
                   handleSetShiftHead(
-                    instructor.id,
-                    instructor.id === shiftHeadId
+                    instructor.userId,
+                    instructor.userId === shiftHeadId
                   )
                 }
                 onDelete={() => {
-                  deletedId.current = instructor.id;
+                  deletedId.current = instructor.userId;
                   setConfirmDeleteInstructor(true);
                 }}
-                isShiftHead={instructor.id === shiftHeadId}
+                isShiftHead={instructor.userId === shiftHeadId}
                 allowEdit={allowEdit}
                 isEditMode={isEditMode}
+                setSelectedInstructor={setSelectedInstructor}
               />
             ))}
           </div>

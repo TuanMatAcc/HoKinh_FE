@@ -58,9 +58,7 @@ const SessionCard = ({
   onSesionMemberDetailChange,
   onAdd,
   onTimeChange,
-  onTopicChange,
-  onVideoLinkChange,
-  onReportChange,
+  onTextFieldChange,
   onSaveSession,
   isBrief = true,
 }) => {
@@ -222,7 +220,9 @@ const SessionCard = ({
             <input
               type="text"
               value={session.topic}
-              onChange={(e) => onTopicChange && onTopicChange(e.target.value)}
+              onChange={(e) =>
+                onTextFieldChange && onTextFieldChange("topic", e.target.value)
+              }
               placeholder="Nhập chủ đề buổi học..."
               className="w-full ml-6 px-3 py-2 border border-purple-200 rounded focus:outline-none focus:border-purple-500 text-sm"
             />
@@ -256,7 +256,8 @@ const SessionCard = ({
               type="url"
               value={session.videoLink}
               onChange={(e) =>
-                onVideoLinkChange && onVideoLinkChange(e.target.value)
+                onTextFieldChange &&
+                onTextFieldChange("videoLink", e.target.value)
               }
               placeholder="Nhập link video (YouTube, Drive, etc.)..."
               className="w-full ml-6 px-3 py-2 border border-purple-200 rounded focus:outline-none focus:border-purple-500 text-sm"
@@ -293,7 +294,9 @@ const SessionCard = ({
           ) : (
             <textarea
               value={session.report}
-              onChange={(e) => onReportChange && onReportChange(e.target.value)}
+              onChange={(e) =>
+                onTextFieldChange && onTextFieldChange("report", e.target.value)
+              }
               placeholder="Nhập nội dung báo cáo buổi học..."
               rows={4}
               className="w-full ml-6 px-3 py-2 border border-purple-200 rounded focus:outline-none focus:border-purple-500 text-sm resize-y"
@@ -311,6 +314,7 @@ const SessionCard = ({
         onToggleRole={onToggleRole}
         allowEdit={true}
         onToggleAttended={onToggleAttended}
+        handleSaveMemberDetail={onSesionMemberDetailChange}
       />
 
       {/* Students Section - Only in detailed view */}
@@ -321,7 +325,7 @@ const SessionCard = ({
           onDelete={onDeleteMembers}
           handleToggleAttendance={onToggleAttended}
           allowEdit={true}
-          handleSaveStudentDetail={onSesionMemberDetailChange}
+          handleSaveMemberDetail={onSesionMemberDetailChange}
         />
       )}
 
