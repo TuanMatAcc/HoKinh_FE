@@ -5,7 +5,6 @@ import {
   Plus,
   ArrowLeft,
 } from "lucide-react";
-import Header from "../../../../components/Header";
 import getDay from "../../../../utils/getVietnameseDay";
 import WeeklySessionsGrid from "./WeeklySessionsGrid";
 import WeekNavigation from "./WeekNavigation";
@@ -16,10 +15,11 @@ import { convertDateInputToVN, getStudyHour } from "../../../../utils/formatDate
 import SessionCard from "./SessionCard";
 import AnnouncementUI from "../../../../components/Announcement";
 import { useClassSessionInRange, useStudentInSession } from "../../../../hooks/useClassSessionInRange";
-import Button from "../../../../components/Button";
 import { useQueryClient } from "@tanstack/react-query";
 import { setQuerySession, setQuerySessionStudents } from "../../hooks/setQuerySession";
 import { sessionService } from "../../../../services/session_api";
+import { useActiveClassMembers } from "../../../../hooks/useClassMembers";
+import { ThreeDotLoader } from "../../../../components/ActionFallback";
 
 const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
   const queryClient = useQueryClient();
@@ -28,9 +28,15 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
   const [selectedDate, setSelectedDate] = useState(weekDays[0].date);
   const [clickedSession, setClickedSession] = useState(null);
   const [sessionDetail, setSessionDetail] = useState(null);
+  const [inProgress, setInProgress] = useState(true);
+  const progressStatement = useRef("Đang tải thông tin buổi học...");
+  // User for a brand new session (members of class)
+  const { data: defaultUsers } = useActiveClassMembers({ classId: selectedClass?.id });
+  const [isEdit, setIsEdit] = useState(false);
   const { data: students } = useStudentInSession({
     sessionId: sessionDetail?.id
   });
+  console.log(defaultUsers);
   const [showSuccess, setShowSuccess] = useState(null);
   const [showError, setShowError] = useState(null);
   const errorMessage = useRef("");
@@ -40,8 +46,6 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     endDate: weekDays[weekDays.length - 1].date,
     classId: selectedClass.id,
   });
-  console.log(weekDays);
-  console.log(sessions);
 
   useEffect(() => {
     if (selectedDate) {
@@ -53,7 +57,14 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
         students: students?.data ? students.data : []
       }))
     }
-  }, [selectedDate, students]);
+    if(!defaultUsers || !sessions) {
+      setInProgress(true);
+      progressStatement.current = 'Đang tải thông tin buổi học...';
+    }
+    else {
+      setInProgress(false);
+    }
+  }, [selectedDate, students, defaultUsers, sessions]);
 
   const stepAWeek = ({direction}) => weekDays.map((item) => {
       const date = new Date(item.date); // Convert string to Date
@@ -92,25 +103,40 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
       validateSession: validateSessionDetail,
     });
   };
+  console.log(students);
 
   const onUpdateSession = async ({session, setSession, validateSession}) => {
     const err = validateSession();
     if (!err) {
+      setInProgress(true);
+      progressStatement.current = "Đang cập nhật buổi học...";
+      const sessionData = {
+        ...session,
+        mainInstructors: session.mainInstructors.map((instructor) =>
+          instructor.isNew ? { ...instructor, id: null } : instructor
+        ),
+        students: session.students.map((student) =>
+          student.isNew ? { ...student, id: null } : student
+        ),
+      };
+      console.log(sessionData);
       try {
-        await sessionService.updateSessionAndUser(session);
+        const updatedSession = await sessionService.updateSessionAndUser(sessionData);
+        
         setQuerySession({
-          session: session,
+          session: updatedSession.data,
           selectedClassId: selectedClass.id,
           startDate: weekDays[0].date,
           endDate: weekDays[weekDays.length - 1].date,
           queryClient: queryClient,
         });
         setQuerySessionStudents({
-          sessionId: session?.id,
-          students: session?.students,
+          sessionId: updatedSession?.data.id,
+          students: updatedSession?.data.students,
           queryClient: queryClient,
         });
         setShowSuccess(session.date);
+        setIsEdit(false);
         setSession(null);
       } catch (error) {
         if (error?.response) {
@@ -125,6 +151,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
       errorMessage.current = err;
       setShowError(true);
     }
+    setInProgress(false);
   };
 
   const validateSessionDetail = () => {
@@ -237,7 +264,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
           ...sessionDtl[role],
           role === "mainInstructors"
             ? {
-                id: sessionDetail.id,
+                id: Date.now(),
                 userId: member.id,
                 name: member.name,
                 roleInSession: "assistant",
@@ -245,16 +272,18 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
                 checkinTime: "",
                 review: "",
                 attended: false,
+                isNew: true
               }
             : {
-                id: sessionDetail.id,
+                id: Date.now(),
                 userId: member.id,
                 name: member.name,
-                roleInSession: "assistant",
+                roleInSession: "student",
                 classId: member.classId,
                 checkinTime: "",
                 review: "",
                 attended: false,
+                isNew: true
               },
         ],
       }));
@@ -333,11 +362,19 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
           setVisible={setShowError}
         />
       )}
-      {sessionDetail ? (
+      {inProgress && (
+        <ThreeDotLoader
+          size="lg"
+          color="blue"
+          message={progressStatement.current}
+        />
+      )}
+      {isEdit ? (
         <>
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <button
               onClick={() => {
+                setIsEdit(false);
                 setSessionDetail(null);
               }}
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition"
@@ -432,10 +469,12 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
               selectedClass={selectedClass}
               sessions={sessions?.data ? sessions.data : []}
               weekDays={weekDays}
+              setIsEdit={setIsEdit}
               setClickedSession={setClickedSession}
               clickedSession={clickedSession}
               onSaveSession={onSaveSession}
               setSessionDetail={setSessionDetail}
+              defaultUsers={defaultUsers}
             />
 
             {/* Quick Actions */}

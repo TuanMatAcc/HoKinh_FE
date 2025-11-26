@@ -118,7 +118,7 @@ const ClickedSessionModal = ({
             ...clkSession[role],
             role === "mainInstructors"
               ? {
-                  id: clkSession.id,
+                  id: Date.now(),
                   userId: member.id,
                   name: member.name,
                   roleInSession: "assistant",
@@ -126,9 +126,10 @@ const ClickedSessionModal = ({
                   checkinTime: "",
                   review: "",
                   attended: false,
+                  isNew: true
                 }
               : {
-                  id: clkSession.id,
+                  id: Date.now(),
                   userId: member.id,
                   name: member.name,
                   roleInSession: "student",
@@ -136,6 +137,7 @@ const ClickedSessionModal = ({
                   checkinTime: "",
                   review: "",
                   attended: false,
+                  isNew: true
                 },
           ],
         }));

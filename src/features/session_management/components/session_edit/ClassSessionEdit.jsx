@@ -23,6 +23,7 @@ const ClassSessionEdit = ({ setView, facilities }) => {
   const errorMessage = useRef("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [inProgress, setInProgress] = useState(false);
+  const progressStatement = useRef("");
   const [selectedClass, setSelectedClass] = useState(null);
   const { data: users } = useActiveClassMembers({ classId: selectedClass?.id });
   console.log(users);
@@ -48,18 +49,6 @@ const ClassSessionEdit = ({ setView, facilities }) => {
         dayOfWeek: day,
         startTime: selectedClassData.startHour,
         endTime: selectedClassData.endHour,
-        // mainInstructors: [
-        //   {
-        //     id: 1,
-        //     name: "Nguyễn Văn A",
-        //     roleInSession: "assistant",
-        //   },
-        //   {
-        //     id: 2,
-        //     name: "Trần Thị B",
-        //     roleInSession: "leader",
-        //   },
-        // ],
         mainInstructors: Object.entries(users)
           .filter(([key]) => key !== "student")
           .map(([_, value]) => ({
@@ -67,26 +56,6 @@ const ClassSessionEdit = ({ setView, facilities }) => {
             name: value[0].name,
             roleInSession: "assistant",
           })),
-        // students: [
-        //   {
-        //     id: 1,
-        //     name: "Võ sinh Lê Văn C",
-        //     roleInSession: "student",
-        //     isRegular: true,
-        //   },
-        //   {
-        //     id: 2,
-        //     name: "Võ sinh Phạm Thị D",
-        //     roleInSession: "student",
-        //     isRegular: true,
-        //   },
-        //   {
-        //     id: 3,
-        //     name: "Võ sinh Hoàng Văn E",
-        //     roleInSession: "student",
-        //     isRegular: false,
-        //   },
-        // ],
         students: users["student"]
           ? users["student"].map((stu) => ({
               id: stu.id,
@@ -298,6 +267,7 @@ const ClassSessionEdit = ({ setView, facilities }) => {
       return;
     }
     setInProgress(true);
+    progressStatement.current = "Đang tiến hành tạo buổi học...";
     // API Call Creating Sessions ***TODO***
     try {
       const templateData = prepareTemplateData();
@@ -363,7 +333,7 @@ const ClassSessionEdit = ({ setView, facilities }) => {
         <ThreeDotLoader
           size="lg"
           color="blue"
-          message={"Đang tiến hành tạo buổi học"}
+          message={progressStatement.current}
         />
       )}
       <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-100 p-6">

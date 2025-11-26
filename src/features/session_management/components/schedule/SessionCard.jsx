@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import SessionStudentSection from "./SessionStudentSection";
 import SessionInstructorSection from "./SessionInstructorSection";
+import formatDate from "../../../../utils/formatDate";
+import { getStudyHour } from "../../../../utils/formatDateAndTimeType";
 
 // Status color utility
 const getStatusColor = (status) => {
@@ -139,7 +141,13 @@ const SessionCard = ({
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-purple-600" />
             <span className="font-semibold text-purple-900">
-              Buổi học {getDay(session.dayOfWeek)}
+              Buổi học{" "}
+              {getDay(session.dayOfWeek)}{" "}
+              {formatDate({
+                dateString: session.date,
+                showTime: false,
+                region: "vi-VN",
+              })}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -184,7 +192,7 @@ const SessionCard = ({
                 className="text-sm text-purple-700 cursor-pointer hover:bg-purple-100 px-2 py-0.5 rounded transition"
                 title="Click để chỉnh sửa thời gian"
               >
-                {session.startTime} - {session.endTime}
+                {getStudyHour(session.startTime)} - {getStudyHour(session.endTime)}
               </span>
             )}
           </div>

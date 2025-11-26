@@ -10,9 +10,19 @@ import { convertDateInputToVN } from "../../../../utils/formatDateAndTimeType";
 import ClickedSessionModal from "./ClickedSessionModal";
 import { getSessionStatus } from "../../../../utils/getStatusSession";
 import SessionInstructorSection from "./SessionInstructorSection";
+import { getDefaultSessionForClass } from "../../../../data/getDefaultSessionForClass";
 
-const WeeklySessionsGrid = ({ weekDays, sessions, selectedClass, clickedSession, setClickedSession, onSaveSession, setSessionDetail }) => {
-
+const WeeklySessionsGrid = ({
+  weekDays,
+  sessions,
+  selectedClass,
+  clickedSession,
+  setClickedSession,
+  onSaveSession,
+  setSessionDetail,
+  setIsEdit,
+  defaultUsers,
+}) => {
   const [enabledOffScheduleDays, setEnabledOffScheduleDays] = useState(
     new Set()
   );
@@ -71,7 +81,7 @@ const WeeklySessionsGrid = ({ weekDays, sessions, selectedClass, clickedSession,
                 if (daySession && e.target.closest(".session-card")) {
                   setClickedSession({
                     ...daySession,
-                    dayOfWeek: dayInfo.day
+                    dayOfWeek: dayInfo.day,
                   });
                 }
               }}
@@ -86,7 +96,7 @@ const WeeklySessionsGrid = ({ weekDays, sessions, selectedClass, clickedSession,
                   {getDay(dayInfo.day)}
                 </h3>
                 <p className="text-white text-md text-center opacity-90">
-                  {convertDateInputToVN(dayInfo.date, 'y')}
+                  {convertDateInputToVN(dayInfo.date, "y")}
                 </p>
               </div>
 
@@ -126,11 +136,15 @@ const WeeklySessionsGrid = ({ weekDays, sessions, selectedClass, clickedSession,
 
                     {/* Action Buttons */}
                     <div className="flex gap-1 mt-3 pt-2 border-t border-blue-100">
-                      <button 
+                      <button
                         className="flex-1 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition flex items-center justify-center gap-1"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSessionDetail(daySession);
+                          setSessionDetail({
+                            ...daySession,
+                            dayOfWeek: dayInfo.day
+                          });
+                          setIsEdit(true);
                         }}
                       >
                         <Edit2 className="w-3 h-3" />
@@ -144,7 +158,20 @@ const WeeklySessionsGrid = ({ weekDays, sessions, selectedClass, clickedSession,
                     <p className="text-gray-400 text-sm mb-3">
                       Chưa có buổi học
                     </p>
-                    <button className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-1 mx-auto">
+                    <button
+                      className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-1 mx-auto"
+                      onClick={() => {
+                        setIsEdit(true);
+                        const defaultSession = getDefaultSessionForClass({
+                          classData: selectedClass,
+                          day: dayInfo.day,
+                          date: dayInfo.date,
+                          users: defaultUsers,
+                        });
+                        console.log(defaultSession);
+                        setSessionDetail(defaultSession);
+                      }}
+                    >
                       <Plus className="w-4 h-4" />
                       Thêm buổi học
                     </button>
@@ -164,7 +191,18 @@ const WeeklySessionsGrid = ({ weekDays, sessions, selectedClass, clickedSession,
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <button className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center justify-center gap-1">
+                      <button
+                        className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center justify-center gap-1"
+                        onClick={() => {
+                          setIsEdit(true);
+                          setSessionDetail(getDefaultSessionForClass({
+                            classData: selectedClass,
+                            day: dayInfo.day,
+                            date: dayInfo.date,
+                            users: defaultUsers
+                          }));
+                        }}
+                      >
                         <Plus className="w-4 h-4" />
                         Thêm buổi học
                       </button>
@@ -192,14 +230,6 @@ const WeeklySessionsGrid = ({ weekDays, sessions, selectedClass, clickedSession,
                       Thêm buổi trái ca
                     </button>
                   </div>
-                )}
-
-                {/* Add Session Button for days with existing sessions */}
-                {daySession && isScheduledDay && (
-                  <button className="w-full py-2 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition text-sm flex items-center justify-center gap-1">
-                    <Plus className="w-4 h-4" />
-                    Thêm buổi học
-                  </button>
                 )}
               </div>
             </div>
