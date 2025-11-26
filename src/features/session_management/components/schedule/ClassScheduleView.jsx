@@ -18,6 +18,8 @@ import AnnouncementUI from "../../../../components/Announcement";
 import { useClassSessionInRange, useStudentInSession } from "../../../../hooks/useClassSessionInRange";
 import Button from "../../../../components/Button";
 import { useQueryClient } from "@tanstack/react-query";
+import { setQuerySession, setQuerySessionStudents } from "../../hooks/setQuerySession";
+import { sessionService } from "../../../../services/session_api";
 
 const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
   const queryClient = useQueryClient();
@@ -75,61 +77,54 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     setWeekDays(nextWeekDays);
   }
 
-  const onSaveSession = () => {
-    const err = validateClickedSession();
-    if (!err) {
-      queryClient.setQueryData(
-        [
-          "sessions",
-          selectedClass.id,
-          weekDays[0].date,
-          weekDays[weekDays.length - 1].date,
-        ],
-        (prev) => ({
-          ...prev,
-          data: prev.data.map((s) =>
-            s.id === clickedSession.id ? clickedSession : s
-          ),
-        })
-      );
-      setShowSuccess(clickedSession.date);
-      setClickedSession(null);
-    } else {
-      errorMessage.current = err;
-      setShowError(true);
-    }
+  const onSaveSession = async () => {
+    onUpdateSession({
+      session: clickedSession,
+      setSession: setClickedSession,
+      validateSession: validateClickedSession,
+    });
   }
 
-  const onSaveFullSession = () => {
-    const err = validateSessionDetail();
+  const onSaveFullSession = async () => {
+    onUpdateSession({
+      session: sessionDetail,
+      setSession: setSessionDetail,
+      validateSession: validateSessionDetail,
+    });
+  };
+
+  const onUpdateSession = async ({session, setSession, validateSession}) => {
+    const err = validateSession();
     if (!err) {
-      queryClient.setQueryData(
-        [
-          "sessions",
-          selectedClass.id,
-          weekDays[0].date,
-          weekDays[weekDays.length - 1].date,
-        ],
-        (prev) => ({
-          ...prev,
-          data: prev.data.map((s) =>
-            s.id === sessionDetail.id ? sessionDetail : s
-          ),
-        })
-      );
-      setShowSuccess(sessionDetail.date);
-      setSessionDetail(null);
+      try {
+        await sessionService.updateSessionAndUser(session);
+        setQuerySession({
+          session: session,
+          selectedClassId: selectedClass.id,
+          startDate: weekDays[0].date,
+          endDate: weekDays[weekDays.length - 1].date,
+          queryClient: queryClient,
+        });
+        setQuerySessionStudents({
+          sessionId: session?.id,
+          students: session?.students,
+          queryClient: queryClient,
+        });
+        setShowSuccess(session.date);
+        setSession(null);
+      } catch (error) {
+        if (error?.response) {
+          errorMessage.current = error.response.data;
+          setShowError(true);
+        } else {
+          errorMessage.current = error;
+          setShowError(true);
+        }
+      }
     } else {
       errorMessage.current = err;
       setShowError(true);
     }
-    queryClient.setQueryData(
-      ["session", "students", sessionDetail?.id],
-      (prev) => ({
-        ...prev,
-        data: sessionDetail.students,
-      })
-    );
   };
 
   const validateSessionDetail = () => {
@@ -164,6 +159,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
           if (instructor.roleInSession !== "off") {
             return {
               ...instructor,
+              attended: false,
               roleInSession: "off",
             };
           }
@@ -233,7 +229,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
   };
 
   const onAddMembers = (dayOfWeek, member, role) => {
-    const exist = sessionDetail[role].find((mem) => mem.userId === member.userId);
+    const exist = sessionDetail[role].find((mem) => mem.userId === member.id);
     if (!exist) {
       setSessionDetail((sessionDtl) => ({
         ...sessionDtl,
@@ -241,15 +237,24 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
           ...sessionDtl[role],
           role === "mainInstructors"
             ? {
-                id: member.userId,
+                id: sessionDetail.id,
+                userId: member.id,
                 name: member.name,
                 roleInSession: "assistant",
+                classId: member.classId,
+                checkinTime: "",
+                review: "",
+                attended: false,
               }
             : {
-                id: member.userId,
+                id: sessionDetail.id,
+                userId: member.id,
                 name: member.name,
-                roleInSession: "student",
-                isRegular: member.classId === selectedClass.id,
+                roleInSession: "assistant",
+                classId: member.classId,
+                checkinTime: "",
+                review: "",
+                attended: false,
               },
         ],
       }));
@@ -289,6 +294,11 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
         instructor.userId === memberId
           ? {
               ...instructor,
+              roleInSession: instructor.attended
+                ? instructor.roleInSession
+                : instructor.roleInSession === "off"
+                ? "assistant"
+                : instructor.roleInSession,
               attended: !instructor.attended,
             }
           : instructor
@@ -301,16 +311,6 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
             }
           : student
       ),
-    }));
-  }
-
-  const updateStudents = (memberId, name, value) => {
-    queryClient.setQueryData(['session', 'students', sessionDetail?.id], prev => ({
-      ...prev,
-      data: prev.data.map((student) => student.id === memberId ? ({
-        ...student,
-        [name]: value
-      }) : student)
     }));
   }
 
@@ -367,6 +367,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
             </div>
           </div>
           <SessionCard
+            classId={selectedClass.id}
             session={sessionDetail}
             isBrief={false}
             onToggleRole={onToggleRole}

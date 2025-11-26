@@ -6,6 +6,7 @@ import SessionCard from "./SessionCard";
 
 const ClickedSessionModal = ({
   clickedSession,
+  classId,
   weekDays,
   setClickedSession,
   onSaveSession
@@ -26,6 +27,7 @@ const ClickedSessionModal = ({
             if (instructor.roleInSession !== "off") {
               return {
                 ...instructor,
+                attended: false,
                 roleInSession: "off",
               };
             }
@@ -46,17 +48,14 @@ const ClickedSessionModal = ({
           instructor.userId === memberId
             ? {
                 ...instructor,
+                roleInSession: instructor.attended
+                  ? instructor.roleInSession
+                  : instructor.roleInSession === "off"
+                  ? "assistant"
+                  : instructor.roleInSession,
                 attended: !instructor.attended,
               }
             : instructor
-        ),
-        students: clkSession.students.map((student) =>
-          student.userId === memberId
-            ? {
-                ...student,
-                attended: !student.attended,
-              }
-            : student
         ),
       }));
     };
@@ -107,14 +106,11 @@ const ClickedSessionModal = ({
         mainInstructors: clickedSession.mainInstructors.filter(
           (instructor) => instructor.userId !== memberId
         ),
-        students: clickedSession.students.filter(
-          (student) => student.userId !== memberId
-        ),
       }));
     };
 
     const onAddMembers = (dayOfWeek, member, role) => {
-      const exist = clickedSession[role].find((mem) => mem.userId === member.userId);
+      const exist = clickedSession[role].find((mem) => mem.userId === member.id);
       if (!exist) {
         setClickedSession((clkSession) => ({
           ...clkSession,
@@ -122,15 +118,24 @@ const ClickedSessionModal = ({
             ...clkSession[role],
             role === "mainInstructors"
               ? {
-                  id: member.userId,
+                  id: clkSession.id,
+                  userId: member.id,
                   name: member.name,
                   roleInSession: "assistant",
+                  classId: member.classId,
+                  checkinTime: "",
+                  review: "",
+                  attended: false,
                 }
               : {
-                  id: member.userId,
+                  id: clkSession.id,
+                  userId: member.id,
                   name: member.name,
                   roleInSession: "student",
-                  isRegular: member.classId === selectedClass.id,
+                  classId: member.classId,
+                  checkinTime: "",
+                  review: "",
+                  attended: false,
                 },
           ],
         }));
@@ -170,6 +175,7 @@ const ClickedSessionModal = ({
         {/* Sessions Detail */}
         <SessionCard
           session={clickedSession}
+          classId={classId}
           onToggleStatus={onToggleStatus}
           onToggleRole={onToggleRole}
           onTimeChange={handleTimeChange}

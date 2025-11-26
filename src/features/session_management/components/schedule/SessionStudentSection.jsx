@@ -33,7 +33,7 @@ const SessionStudentSection = ({
   const errorMessage = useRef("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
-
+console.log(classId);
   const handleAddStudent = (user) => {
     try {
       onAdd(session.dayOfWeek, user, "students");

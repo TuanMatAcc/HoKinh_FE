@@ -51,6 +51,7 @@ const getStatusIcon = (status) => {
 // Session Card Component
 const SessionCard = ({
   session,
+  classId,
   onToggleStatus,
   onToggleRole,
   onDeleteMembers,
@@ -323,6 +324,7 @@ const SessionCard = ({
           onAdd={onAdd}
           session={session}
           onDelete={onDeleteMembers}
+          classId={classId}
           handleToggleAttendance={onToggleAttended}
           allowEdit={true}
           handleSaveMemberDetail={onSesionMemberDetailChange}
