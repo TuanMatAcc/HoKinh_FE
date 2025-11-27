@@ -137,7 +137,7 @@ const WeeklySessionsGrid = ({
                     {/* Action Buttons */}
                     <div className="flex gap-1 mt-3 pt-2 border-t border-blue-100">
                       <button
-                        className="flex-1 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition flex items-center justify-center gap-1"
+                        className="flex-1 px-2 py-1 bg-blue-600 text-white rounded text-md hover:bg-blue-700 transition flex items-center justify-center gap-1"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSessionDetail({
@@ -147,7 +147,7 @@ const WeeklySessionsGrid = ({
                           setIsEdit(true);
                         }}
                       >
-                        <Edit2 className="w-3 h-3" />
+                        <Edit2 className="w-4 h-4" />
                         Chi tiết
                       </button>
                     </div>

@@ -21,6 +21,7 @@ export function getDefaultSessionForClass({ classData, day, date, users }) {
                     checkinTime: "",
                     review: "",
                     attended: false,
+                    isNew: true,
                 }))
             ),
         students: users["student"]
@@ -33,6 +34,7 @@ export function getDefaultSessionForClass({ classData, day, date, users }) {
                 checkinTime: "",
                 review: "",
                 attended: false,
+                isNew: true,
             }))
             : [],
     };

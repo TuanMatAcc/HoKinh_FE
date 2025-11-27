@@ -16,6 +16,11 @@ export const sessionService = {
     getStudentsInSession: (sessionId) => api.get(
         `/api/session/${sessionId}/students-management`
     ),
+    createSessionAndUser: (session) => 
+        api.post(
+            '/api/session/create-management', 
+            session
+        ),
     updateSessionAndUser: (session) => 
         api.put(
             '/api/session/update-management', 

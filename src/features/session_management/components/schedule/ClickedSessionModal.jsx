@@ -19,6 +19,28 @@ const ClickedSessionModal = ({
         }));
     };
 
+    const onSesionMemberDetailChange = (memberId, editData) => {
+      setClickedSession((clkSession) => ({
+        ...clkSession,
+        mainInstructors: clkSession.mainInstructors.map((instructor) =>
+          instructor.userId === memberId
+            ? {
+                ...instructor,
+                ...editData,
+              }
+            : instructor
+        ),
+        students: clkSession.students ? clickedSession.students.map((student) =>
+          student.userId === memberId
+            ? {
+                ...student,
+                ...editData,
+              }
+            : student
+        ) : null,
+      }));
+    };
+
     const onToggleStatus = (dayOfWeek, instructorId) => {
       setClickedSession((clkSession) => ({
         ...clkSession,
@@ -109,6 +131,13 @@ const ClickedSessionModal = ({
       }));
     };
 
+    const onSessionStatusChange = (statusValue) => {
+      setClickedSession((clkSession) => ({
+        ...clkSession,
+        status: statusValue,
+      }));
+    };
+
     const onAddMembers = (dayOfWeek, member, role) => {
       const exist = clickedSession[role].find((mem) => mem.userId === member.id);
       if (!exist) {
@@ -150,7 +179,7 @@ const ClickedSessionModal = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
       <div
-        className="w-130 bg-white rounded-lg shadow-2xl border-4 border-blue-500 p-6 overflow-y-auto"
+        className="w-150 bg-white rounded-lg shadow-2xl border-4 border-blue-500 p-6 overflow-y-auto"
         style={{ maxHeight: "80vh" }}
       >
         {/* Header */}
@@ -186,6 +215,8 @@ const ClickedSessionModal = ({
           onTextFieldChange={() => {}}
           onSaveSession={onSaveSession}
           onToggleAttended={onToggleAttended}
+          onSesionMemberDetailChange={onSesionMemberDetailChange}
+          onSessionStatusChange={onSessionStatusChange}
         />
       </div>
     </div>

@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 
 export function setQuerySession({session, selectedClassId, startDate, endDate, queryClient}) {
-    console.log(session);
     queryClient.setQueryData(
         [
             "sessions",
@@ -11,12 +10,20 @@ export function setQuerySession({session, selectedClassId, startDate, endDate, q
         ],
         (prev) => {
             if (!prev) return prev;
-            return ({
-                ...prev,
-                data: prev.data.map((s) =>
-                    s.id === session.id ? session : s
-                )
-            });
+            if(prev.data.find(s => s.id === session.id)) {
+                return ({
+                    ...prev,
+                    data: prev.data.map((s) =>
+                        s.id === session.id ? session : s
+                    )
+                });
+            }
+            else {
+                return ({
+                    ...prev,
+                    data: [...prev.data, session]
+                });
+            }
         }
     );
 }

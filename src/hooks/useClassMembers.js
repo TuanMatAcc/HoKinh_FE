@@ -12,7 +12,7 @@ export const useActiveClassMembers = ({classId}) => useQuery({
         mem[type].push(user);
         return mem;
       }, {}),
-    staleTime: Infinity,
+    staleTime: 60000 * 5,
 });
 
 export const useInactiveClassMembers = ({classId}) => useQuery({
@@ -26,5 +26,5 @@ export const useInactiveClassMembers = ({classId}) => useQuery({
         mem[type].push(user);
         return mem;
       }, {}),
-    staleTime: Infinity
+    staleTime: 60000 * 5
 });

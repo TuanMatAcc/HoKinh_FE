@@ -26,6 +26,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
   // Weekly daysOfWeek data
   const [weekDays, setWeekDays] = useState(getCurrentWeekDays());
   const [selectedDate, setSelectedDate] = useState(weekDays[0].date);
+  const deletedUsers = useRef([]);
   const [clickedSession, setClickedSession] = useState(null);
   const [sessionDetail, setSessionDetail] = useState(null);
   const [inProgress, setInProgress] = useState(true);
@@ -97,13 +98,59 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
   }
 
   const onSaveFullSession = async () => {
-    onUpdateSession({
-      session: sessionDetail,
-      setSession: setSessionDetail,
-      validateSession: validateSessionDetail,
-    });
+    if(sessionDetail.id) {
+      onUpdateSession({
+        session: sessionDetail,
+        setSession: setSessionDetail,
+        validateSession: validateSessionDetail,
+      });
+    }
+    else {
+      const err = validateSessionDetail();
+      if(!err) {
+        setInProgress(true);
+        progressStatement.current = "Đang tạo buổi học...";
+        const sessionData = {
+          ...sessionDetail,
+          mainInstructors: sessionDetail.mainInstructors.map((instructor) =>
+            instructor.isNew ? { ...instructor, id: null } : instructor
+          ),
+          students: sessionDetail.students.map((student) =>
+            student.isNew ? { ...student, id: null } : student
+          ),
+          classId: selectedClass.id,
+        };
+        console.log(sessionData);
+        try {
+          const createdSession = await sessionService.createSessionAndUser(
+            sessionData
+          );
+          setQuerySession({
+            session: createdSession.data,
+            selectedClassId: selectedClass.id,
+            startDate: weekDays[0].date,
+            endDate: weekDays[weekDays.length - 1].date,
+            queryClient: queryClient,
+          });
+        } catch (error) {
+          setShowError(true);
+          if (error.response) {
+            errorMessage.current = error.response.data;
+          } else {
+            errorMessage.current = error;
+          }
+        } finally {
+          setInProgress(false);
+          setIsEdit(false);
+          setSessionDetail(null);
+        }
+      }
+      else {
+        errorMessage.current = err;
+        setShowError(true);
+      }
+    }
   };
-  console.log(students);
 
   const onUpdateSession = async ({session, setSession, validateSession}) => {
     const err = validateSession();
@@ -115,13 +162,14 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
         mainInstructors: session.mainInstructors.map((instructor) =>
           instructor.isNew ? { ...instructor, id: null } : instructor
         ),
-        students: session.students.map((student) =>
-          student.isNew ? { ...student, id: null } : student
-        ),
+        students: session.students ? session.students.map((student) =>
+          student.isNew ? { ...student, id: null } : student 
+        ) : null,
+        sessionUserIds: deletedUsers.current
       };
       console.log(sessionData);
       try {
-        const updatedSession = await sessionService.updateSessionAndUser(sessionData);
+        const updatedSession = await sessionService.updateSessionAndUser(sessionData, deletedUsers);
         
         setQuerySession({
           session: updatedSession.data,
@@ -153,6 +201,13 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     }
     setInProgress(false);
   };
+
+  const onSessionStatusChange = (statusValue) => {
+    setSessionDetail((sessionDtl) => ({
+      ...sessionDtl,
+      status: statusValue
+    }));
+  }
 
   const validateSessionDetail = () => {
     const leaderExist = sessionDetail.mainInstructors.find(
@@ -244,6 +299,17 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
   };
 
   const onDeleteMembers = (dayOfWeek, memberId) => {
+    let exist = sessionDetail.mainInstructors.find(
+      (instructor) => instructor.userId === memberId
+    );
+    if(!exist) {
+      exist = sessionDetail.students.find(
+        (student) => student.userId === memberId
+      );
+    }
+    if(exist.id) {
+      deletedUsers.current.push(exist.id);
+    }
     setSessionDetail((sessionDtl) => ({
       ...sessionDtl,
       mainInstructors: sessionDtl.mainInstructors.filter(
@@ -375,6 +441,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
             <button
               onClick={() => {
                 setIsEdit(false);
+                deletedUsers.current = [];
                 setSessionDetail(null);
               }}
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition"
@@ -416,6 +483,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
             onSesionMemberDetailChange={onSesionMemberDetailChange}
             onSaveSession={onSaveFullSession}
             onTextFieldChange={onSessionFieldChange}
+            onSessionStatusChange={onSessionStatusChange}
           />
         </>
       ) : (
@@ -480,10 +548,6 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
             {/* Quick Actions */}
             <div className="mt-6 bg-white rounded-lg shadow-md p-6">
               <div className="flex flex-wrap gap-4">
-                <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center gap-2">
-                  <Plus className="w-5 h-5" />
-                  Thêm Buổi Học Hàng Loạt
-                </button>
                 <button className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
                   Xuất Lịch Học

@@ -1,12 +1,10 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import {
   Users,
   Plus,
   Trash2,
   Edit2,
   X,
-  Clock,
-  FileText,
   CheckCircle2,
   XCircle,
 } from "lucide-react";
@@ -33,7 +31,19 @@ const SessionStudentSection = ({
   const errorMessage = useRef("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
-console.log(classId);
+
+  // Calculate attendance statistics
+  const attendanceStats = useMemo(() => {
+    if (!session.students) return { total: 0, present: 0, absent: 0, rate: 0 };
+
+    const total = session.students.length;
+    const present = session.students.filter((s) => s.attended).length;
+    const absent = total - present;
+    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+
+    return { total, present, absent, rate };
+  }, [session.students]);
+
   const handleAddStudent = (user) => {
     try {
       onAdd(session.dayOfWeek, user, "students");
@@ -42,8 +52,6 @@ console.log(classId);
       setShowError(true);
     }
   };
-
-  console.log(session.students)
 
   return (
     <>
@@ -88,7 +96,7 @@ console.log(classId);
         <div className="flex items-center justify-between mb-2">
           <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Võ Sinh ({session.students ? session.students.length : 0})
+            Võ Sinh ({attendanceStats.total})
           </h4>
           <div className="flex items-center gap-2">
             {/* Edit Mode Toggle Button */}
@@ -125,6 +133,66 @@ console.log(classId);
             )}
           </div>
         </div>
+
+        {/* Attendance Overview Panel */}
+        {session.students && session.students.length > 0 && (
+          <div className="bg-white rounded-lg p-3 mb-3 border border-gray-200">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 flex-1">
+                {/* Present */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 text-blue-600">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="text-xs font-medium">Có mặt:</span>
+                  </div>
+                  <span className="text-sm font-bold text-blue-700">
+                    {attendanceStats.present}
+                  </span>
+                </div>
+
+                {/* Absent */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 text-gray-600">
+                    <XCircle className="w-4 h-4" />
+                    <span className="text-xs font-medium">Vắng:</span>
+                  </div>
+                  <span className="text-sm font-bold text-gray-700">
+                    {attendanceStats.absent}
+                  </span>
+                </div>
+
+                {/* Attendance Rate */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-600">
+                    Tỷ lệ:
+                  </span>
+                  <span
+                    className={`text-sm font-bold ${
+                      attendanceStats.rate >= 80
+                        ? "text-green-600"
+                        : attendanceStats.rate >= 60
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {attendanceStats.rate}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Visual Progress Bar */}
+              <div className="flex-1 max-w-xs">
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-blue-600 h-full transition-all duration-300"
+                    style={{ width: `${attendanceStats.rate}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {session.students ? (
             session.students.map((student) => (

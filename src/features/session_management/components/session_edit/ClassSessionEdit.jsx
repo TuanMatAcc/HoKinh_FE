@@ -13,11 +13,12 @@ import { ConfirmDialog } from "../../../../components/ConfirmDialog";
 import { sessionService } from "../../../../services/session_api";
 import { getDayOfWeek } from "../../../../utils/formatDateAndTimeType";
 import { useActiveClassMembers } from "../../../../hooks/useClassMembers";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Main Component
 const ClassSessionEdit = ({ setView, facilities }) => {
   const today = new Date().toISOString().slice(0, 10);
-
+  const queryClient = useQueryClient();
   const [selectedFacility, setSelectedFacility] = useState(null);
   const [showError, setShowError] = useState(false);
   const errorMessage = useRef("");
@@ -26,7 +27,6 @@ const ClassSessionEdit = ({ setView, facilities }) => {
   const progressStatement = useRef("");
   const [selectedClass, setSelectedClass] = useState(null);
   const { data: users } = useActiveClassMembers({ classId: selectedClass?.id });
-  console.log(users);
   const [dateRange, setDateRange] = useState({ start: today, end: today });
   const [selectedDays, setSelectedDays] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -279,6 +279,14 @@ const ClassSessionEdit = ({ setView, facilities }) => {
         templateData
       );
       setInProgress(false);
+      queryClient.invalidateQueries({
+        queryKey: ['sessions'],
+        exact: false
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["session"],
+        exact: false,
+      });
     } catch (error) {
       if (error?.response) {
         errorMessage.current = error.response.data;
