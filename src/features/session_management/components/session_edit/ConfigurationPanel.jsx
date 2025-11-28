@@ -4,6 +4,7 @@ import {
   Plus,
 } from "lucide-react";
 import getDay from "../../../../utils/getVietnameseDay";
+import { getStudyHour } from "../../../../utils/formatDateAndTimeType";
 
 // Date Range Validator Component
 const DateRangeValidator = ({ dateRange, maxDaysPeriod }) => {
@@ -48,6 +49,8 @@ const ConfigurationPanel = ({
   setSelectedFacility,
   selectedClass,
   setSelectedClass,
+  setSelectedDays,
+  setTemplates,
   dateRange,
   setDateRange,
   maxDaysPeriod,
@@ -73,6 +76,8 @@ const ConfigurationPanel = ({
               setSelectedFacility(
                 facilities.find((fac) => fac.id === parseInt(e.target.value))
               );
+              setTemplates([]);
+              setSelectedDays([]);
               setSelectedClass(null);
             }}
             className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500"
@@ -92,14 +97,17 @@ const ConfigurationPanel = ({
           </label>
           <select
             defaultValue={""}
-            onChange={(e) =>
+            onChange={(e) => {
+              setSelectedDays([]);
+              setTemplates([]);
               setSelectedClass(
                 selectedFacility
                   ? selectedFacility.classes.find(
                       (cls) => cls.id === parseInt(e.target.value)
                     )
                   : []
-              )
+              );
+            }
             }
             disabled={!selectedFacility}
             className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
@@ -162,7 +170,7 @@ const ConfigurationPanel = ({
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-blue-600" />
               <span className="text-sm text-blue-800">
-                {selectedClassData.startTime} - {selectedClassData.endTime}
+                {getStudyHour(selectedClassData.startHour)} - {getStudyHour(selectedClassData.endHour)}
               </span>
             </div>
           </div>

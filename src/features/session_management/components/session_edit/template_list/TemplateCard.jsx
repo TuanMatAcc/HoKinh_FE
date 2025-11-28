@@ -3,6 +3,7 @@ import getDay from "../../../../../utils/getVietnameseDay";
 import StudentsSection from "./ClassStudentSection";
 import InstructorsSection from "./ClassCoachInstructorSection";
 import { Calendar, Clock, Edit2, Trash2 } from "lucide-react";
+import { getStudyHour } from "../../../../../utils/formatDateAndTimeType";
 
 // Template Card Component
 const TemplateCard = ({
@@ -141,7 +142,7 @@ const TemplateCard = ({
                 className="text-sm text-purple-700 cursor-pointer hover:bg-purple-100 px-2 py-0.5 rounded transition"
                 title="Click để chỉnh sửa thời gian"
               >
-                {template.startTime} - {template.endTime}
+                {getStudyHour(template.startTime)} - {getStudyHour(template.endTime)}
               </span>
             )}
           </div>

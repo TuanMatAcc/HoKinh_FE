@@ -14,6 +14,7 @@ import { sessionService } from "../../../../services/session_api";
 import { getDayOfWeek } from "../../../../utils/formatDateAndTimeType";
 import { useActiveClassMembers } from "../../../../hooks/useClassMembers";
 import { useQueryClient } from "@tanstack/react-query";
+import getDay from "../../../../utils/getVietnameseDay";
 
 // Main Component
 const ClassSessionEdit = ({ setView, facilities }) => {
@@ -258,44 +259,70 @@ const ClassSessionEdit = ({ setView, facilities }) => {
     }));
   };
 
+  const validateTemplates = () => {
+    const templatesWithNoLeader = templates
+      .filter(
+        (temp) =>
+          !temp.mainInstructors.find(
+            (instructor) => instructor.roleInSession === "leader"
+          )
+      )
+      .map((temp) => parseInt(temp.dayOfWeek, 10));
+    console.log(templatesWithNoLeader);
+    if (templatesWithNoLeader.length !== 0) return "Template " + templatesWithNoLeader.map(tempDay => getDay(tempDay)).join(", ") + " chưa có ca trưởng";
+    return "";
+  };
+
   const handleCreateTemplate = async () => {
-    setShowConfirmDialog(false);
-    if (templates.length === 0) {
-      setShowError(true);
-      errorMessage.current =
-        "Bạn chưa chọn template nào để tiến hành tạo buổi học";
-      return;
-    }
-    setInProgress(true);
-    progressStatement.current = "Đang tiến hành tạo buổi học...";
-    // API Call Creating Sessions ***TODO***
-    try {
-      const templateData = prepareTemplateData();
-      console.log(templateData);
-      await sessionService.createSessions(
-        selectedClass.id,
-        dateRange.start,
-        dateRange.end,
-        templateData
-      );
-      setInProgress(false);
-      queryClient.invalidateQueries({
-        queryKey: ['sessions'],
-        exact: false
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["session"],
-        exact: false,
-      });
-    } catch (error) {
-      if (error?.response) {
-        errorMessage.current = error.response.data;
+    const err = validateTemplates();
+    if(!err) {
+      setShowConfirmDialog(false);
+      if (templates.length === 0) {
         setShowError(true);
-      } else {
-        errorMessage.current = error.response;
-        setShowError(true);
+        errorMessage.current =
+          "Bạn chưa chọn template nào để tiến hành tạo buổi học";
+        return;
       }
-      setInProgress(false);
+      setInProgress(true);
+      progressStatement.current = "Đang tiến hành tạo buổi học...";
+      // API Call Creating Sessions ***TODO***
+      try {
+        const templateData = prepareTemplateData();
+        console.log(templateData);
+        await sessionService.createSessions(
+          selectedClass.id,
+          dateRange.start,
+          dateRange.end,
+          templateData
+        );
+        setInProgress(false);
+        queryClient.invalidateQueries({
+          queryKey: ["sessions"],
+          exact: false,
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["session"],
+          exact: false,
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["facilities", "management"],
+          exact: true,
+        });
+      } catch (error) {
+        if (error?.response) {
+          errorMessage.current = error.response.data;
+          setShowError(true);
+        } else {
+          errorMessage.current = error.response;
+          setShowError(true);
+        }
+        setInProgress(false);
+      }
+    }
+    else {
+      setShowError(true);
+      setShowConfirmDialog(false);
+      errorMessage.current = err;
     }
   };
 
@@ -361,7 +388,9 @@ const ClassSessionEdit = ({ setView, facilities }) => {
           />
           <SessionOverviewPanel facilities={facilities} />
           <ConfigurationPanel
+            setSelectedDays={setSelectedDays}
             facilities={facilities}
+            setTemplates={setTemplates}
             selectedFacility={selectedFacility}
             setSelectedFacility={setSelectedFacility}
             selectedClass={selectedClass}
