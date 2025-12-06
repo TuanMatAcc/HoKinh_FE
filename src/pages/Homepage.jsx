@@ -1056,7 +1056,7 @@ function EventContent({itemsPerPage, data, currentPage, setCurrentPage}) {
 
   // Data Pagination
   const currentEvents = Array.isArray(data.content) ? data.content : [];
-  const totalPages = data.totalPages || 0;
+  const totalPages = data.page.totalPages || 0;
   const startIndex = currentPage * itemsPerPage;
 
   const goToNext = () => {

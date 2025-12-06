@@ -45,3 +45,23 @@ export function setQuerySessionStudents({sessionId, students, queryClient}) {
         }
     );
 }
+
+export function deleteQuerySession({sessionId, selectedClassId, startDate, endDate, queryClient}) {
+    queryClient.setQueryData(
+        [
+            "sessions",
+            selectedClassId,
+            startDate,
+            endDate
+        ],
+        (prev) => {
+            if (!prev) return prev;
+            return ({
+                ...prev,
+                data: prev.data.filter((s) =>
+                    s.id !== sessionId
+                )
+            });
+        }
+    );
+}

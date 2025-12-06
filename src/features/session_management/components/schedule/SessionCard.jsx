@@ -13,11 +13,13 @@ import {
   CircleDashed,
   ChevronDown,
   Check,
+  Trash2,
 } from "lucide-react";
 import SessionStudentSection from "./SessionStudentSection";
 import SessionInstructorSection from "./SessionInstructorSection";
 import formatDate from "../../../../utils/formatDate";
 import { getStudyHour } from "../../../../utils/formatDateAndTimeType";
+import { ConfirmDialog } from "../../../../components/ConfirmDialog";
 
 // Status color utility
 const getStatusColor = (status) => {
@@ -73,12 +75,14 @@ const SessionCard = ({
   onTimeChange,
   onTextFieldChange,
   onSaveSession,
+  onDeleteSession,
   isBrief = true,
 }) => {
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [tempStartTime, setTempStartTime] = useState(session.startTime);
   const [tempEndTime, setTempEndTime] = useState(session.endTime);
   const [timeError, setTimeError] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const timeInputContainerRef = useRef(null);
 
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
@@ -179,6 +183,27 @@ const SessionCard = ({
 
   return (
     <div className="border-2 border-purple-200 rounded-lg p-4 hover:border-purple-400 transition bg-purple-50">
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          action="remove"
+          title={"Xóa buổi học"}
+          askDetail={
+            "Bạn có muốn xóa buổi học " +
+            formatDate({
+              dateString: session.date,
+              showTime: false,
+              region: "vi-VN",
+            }) +
+            " không ?"
+          }
+          handleCancel={() => setShowDeleteConfirm(false)}
+          handleConfirm={() => {
+            setShowDeleteConfirm(false);
+            console.log("fuckkk");
+            onDeleteSession(session.id);
+          }}
+        />
+      )}
       {/* Header Section */}
       <div className="flex items-center justify-between mb-3 pb-3 border-b-2 border-purple-200">
         <div className="flex items-center gap-4">
@@ -241,16 +266,6 @@ const SessionCard = ({
             )}
           </div>
         </div>
-
-        {/* Status Badge */}
-        {/* <div
-          className={`flex items-center gap-2 px-3 py-1 rounded-full border-2 font-medium text-sm ${getStatusColor(
-            session.status
-          )}`}
-        >
-          {getStatusIcon(session.status)}
-          <span>{getSessionStatus(session.status)}</span>
-        </div> */}
 
         {/* Status Badge with Dropdown */}
         <div className="relative" ref={statusDropdownRef}>
@@ -422,7 +437,14 @@ const SessionCard = ({
       )}
 
       {/* Save Button - at the end */}
-      <div className="mt-4 pt-4 border-t-2 border-purple-200 flex justify-end">
+      <div className="mt-4 pt-4 border-t-2 border-purple-200 flex justify-between">
+        <button
+          className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium shadow-sm hover:shadow-md"
+          onClick={() => setShowDeleteConfirm(true)}
+        >
+          <Trash2 size={20}/>
+          <span>Xóa</span>
+        </button>
         <button
           className="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium shadow-sm hover:shadow-md"
           onClick={onSaveSession}

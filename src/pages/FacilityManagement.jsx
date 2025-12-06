@@ -15,6 +15,7 @@ import { useManagerOptions } from '../hooks/useManagerOptionsData'
 import { ThreeDotLoader } from '../components/ActionFallback';
 import { useFacility } from '../hooks/useFacilityData';
 import Header from '../components/Header';
+import { deleteActiveClassMembers, deleteInactiveClassMembers } from '../hooks/useClassMembers';
 
 const FacilityManagement = () => {
     const [view, setView] = useState('list'); // 'list' or 'detail'
@@ -41,7 +42,7 @@ const FacilityManagement = () => {
         }
     }
 
-    const onSaveEditClass = async ({classInfo, facilityId, newUsers, newMembers, usersToUpdate, classMembersChangeStatus}) => {
+    const onSaveEditClass = async ({classInfo, facilityId, newUsers, newMembers, deletedMembers, usersToUpdate, classMembersChangeStatus}) => {
         try {
             if(classInfo.id) {
                 console.log("ON SAVE:")
@@ -144,6 +145,26 @@ const FacilityManagement = () => {
                     ...prev,
                     ...allMembers
                 }));
+
+                console.log(deletedMembers);
+                console.log(classInfo.id);
+                if(deletedMembers.length != 0) {
+                  await facilityClassUserService.deleteUsersInClass(
+                    deletedMembers,
+                    classInfo.id
+                  );
+                }
+                deleteActiveClassMembers({
+                  classId: classInfo.id,
+                  memIds: deletedMembers,
+                  queryClient: queryClient
+                });
+
+                deleteInactiveClassMembers({
+                  classId: classInfo.id,
+                  memIds: deletedMembers,
+                  queryClient: queryClient,
+                });
             
                 console.log("Users need to update");
                 console.log(usersToUpdate);

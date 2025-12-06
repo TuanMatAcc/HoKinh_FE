@@ -69,7 +69,7 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
 
   // Generate page numbers for pagination
   const getPageNumbers = () => {
-    const totalPages = mockUsers?.data?.totalPages || 0;
+    const totalPages = mockUsers?.data?.page.totalPages || 0;
     const pages = [];
     const maxPagesToShow = 5;
 
@@ -104,7 +104,7 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
     return pages;
   };
 
-  const totalPages = mockUsers?.data?.totalPages || 0;
+  const totalPages = mockUsers?.data?.page.totalPages || 0;
   const hasResults = mockUsers?.data?.content?.length > 0;
 
   if (!isOpen) return null;
@@ -150,7 +150,7 @@ const UserSearchModal = ({ isOpen, onClose, onSelectUser, typeSearch }) => {
         <div className="px-6 pb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-semibold text-gray-700">
-              Kết quả tìm kiếm ({mockUsers?.data?.totalElements || 0})
+              Kết quả tìm kiếm ({mockUsers?.data?.page.totalElements || 0})
             </h3>
             {hasResults && (
               <span className="text-sm text-gray-500">

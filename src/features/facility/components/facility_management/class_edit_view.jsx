@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
   Camera,
+  Trash2,
 } from "lucide-react";
 import { ConfirmDialog } from "../../../../components/ConfirmDialog";
 import { userService } from "../../../../services/user_api";
@@ -21,17 +22,20 @@ import getBeltLabel from "../../../../utils/formatBeltLevel";
 import validateUserForm from "../../../../hooks/ValidateUser";
 import validateClassForm from "../../../../hooks/ValidateClass";
 import mapUserRole from "../../../../utils/mapUserRole";
-import { useActiveClassMembers, useInactiveClassMembers } from "../../../../hooks/useClassMembers"
+import { deleteActiveClassMembers, useActiveClassMembers, useInactiveClassMembers } from "../../../../hooks/useClassMembers"
 import { MemberCardSkeleton } from "../../../../components/skeleton/MemberCardSkeleton";
+import { ThreeDotLoader } from "../../../../components/ActionFallback";
 
 const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
-  console.log(classDetail.id);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("active");
   const [showAddModal, setShowAddModal] = useState(false);
   const [addType, setAddType] = useState("new"); // 'new' or 'existing'
   const [editingId, setEditingId] = useState(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showConfirmDeleteMemberDialog, setShowConfirmDeleteMemberDialog] = useState("");
+  const delMem = useRef("");
+  const [deletedMembers, setDeletedMembers] = useState([]);
   const [showError, setShowError] = useState(false);
   const errorMessage = useRef("");
   const action = useRef("");
@@ -90,7 +94,6 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
   );
 
   const toggleDay = (day) => {
-    console.log(classInfo.daysOfWeek);
     setClassInfo((prev) => ({
       ...prev,
       daysOfWeek: prev.daysOfWeek.split("-").includes(day)
@@ -158,9 +161,6 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
           data: prev.data.map((mem) => (mem.id === user.id ? user : mem)),
         })
       );
-      console.log(
-        queryClient.getQueryData(["members", "active", classDetail.id])
-      );
     }
     else {
       queryClient.setQueryData(
@@ -170,7 +170,6 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
           data: prev.data.map((mem) => (mem.id === user.id ? user : mem)),
         })
       );
-      console.log(queryClient.getQueryData(["members", "inactive", classDetail.id]));
     }
 
   };
@@ -227,7 +226,6 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
         break;
       }
     }
-    console.log(user);
     // Case: Role In Class doesn't change
     if (previousRoleInClass === user.roleInClass) {
       setNewUsers((prev) => ({
@@ -316,12 +314,10 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
 
   const confirmSave = () => {
     setShowConfirmDialog(true);
-    console.log("haha");
     action.current = "store";
   };
 
   const handleSubmit = async () => {
-    console.log(classInfo);
     const check = validateClassForm({editClassForm : classInfo});
     if(Object.keys(check).length === 0) {
       try {
@@ -332,6 +328,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
           newUsers: newUsers,
           newMembers: newMembers,
           usersToUpdate: modifiedExistedMembers.current,
+          deletedMembers: deletedMembers,
           classMembersChangeStatus: toUpdateClassMembers.current
         });
         onCancel();
@@ -399,8 +396,6 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
     }
 
     for(const value of Object.values(newMembers)) {
-        console.log(value);
-        console.log(newMembers)
         activeNewMembersInClass.push(...(value.map((mem) => mem.id)));
     }
 
@@ -462,6 +457,13 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  console.log(deletedMembers);
+  const handleDeleteMember = (userId) => {
+    setDeletedMembers((currentDelMems) => [userId, ...currentDelMems]);
+    setShowConfirmDeleteMemberDialog(false);
+    delMem.current = "";
+    setShowConfirmDeleteMemberDialog("");
+  }
 
   const MemberCard = ({ member, type, isActiveInClass, state = "inClass", setMemberList, duplicatedUser }) => {
     const [editForm, setEditForm] = useState(member);
@@ -543,7 +545,8 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                 </span>
                 {member.role && (
                   <span className="flex items-center gap-1">
-                    <span className="font-medium">Chức danh:</span> {mapUserRole(member.role)}
+                    <span className="font-medium">Chức danh:</span>{" "}
+                    {mapUserRole(member.role)}
                   </span>
                 )}
               </div>
@@ -653,10 +656,19 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                           roleInClass: member.roleInClass,
                         });
                       }
-                      console.log(toUpdateClassMembers.current);
                     }}
                   >
                     <Power size={18} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      delMem.current = member.id;
+                      setShowConfirmDeleteMemberDialog(member.name);
+                    }}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Xóa thành viên lớp"
+                  >
+                    <Trash2 size={18} />
                   </button>
                 </>
               )}
@@ -960,12 +972,10 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                   });
                   if (Object.keys(check).length > 0) {
                     setMemberCardErrors(check);
-                    console.log(updatedMember.id);
                     return;
                   }
                   setMemberCardErrors(check);
                   setMemberList(updatedMember);
-                  console.log(updatedMember);
 
                   if (state === "inClass") {
                     const isExist = toUpdateClassMembers.current.some(
@@ -1078,13 +1088,14 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                   type={type}
                   isActiveInClass={isActiveInClass}
                   state="newUser"
-                  duplicatedUser={duplicatedUsers.find(userId => userId === user.id)}
+                  duplicatedUser={duplicatedUsers.find(
+                    (userId) => userId === user.id
+                  )}
                   setMemberList={changeUserInNewUserList}
                 />
               ))}
             {newMembers.length > 0 &&
               newMembers.map((newMem) => {
-                console.log(newMem);
                 return (
                   <MemberCard
                     key={newMem.id}
@@ -1098,17 +1109,19 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                 );
               })}
             {members.length > 0 ? (
-              members.map((member) => (
-                <MemberCard
-                  key={member.id}
-                  member={member}
-                  type={type}
-                  isActiveInClass={isActiveInClass}
-                  state="inClass"
-                  duplicatedUser={null}
-                  setMemberList={changeUserInMemberList}
-                />
-              ))
+              members.map((member) =>
+                !deletedMembers.includes(member.id) && (
+                  <MemberCard
+                    key={member.id}
+                    member={member}
+                    type={type}
+                    isActiveInClass={isActiveInClass}
+                    state="inClass"
+                    duplicatedUser={null}
+                    setMemberList={changeUserInMemberList}
+                  />
+                )
+              )
             ) : (
               <p className="text-center text-gray-500 py-4">Không có dữ liệu</p>
             )}
@@ -1160,6 +1173,26 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
             action.current === "cancel" ? handleCancel : handleSubmit
           }
         />
+      )}
+
+      {showConfirmDeleteMemberDialog && (
+        <ConfirmDialog
+          title={
+            "Xóa " + showConfirmDeleteMemberDialog
+          }
+          askDetail={
+            "Bạn có chắc chắn muốn xóa " +
+            showConfirmDeleteMemberDialog +
+            " ra khỏi lớp " +
+            classDetail.name + " không ?"
+          }
+          handleCancel={() => setShowConfirmDeleteMemberDialog(false)}
+          handleConfirm={() => handleDeleteMember(delMem.current)}
+        />
+      )}
+
+      {inProgress && (
+        <ThreeDotLoader message="Đang cập nhật thông tin lớp..." />
       )}
       <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-blue-50">
         <div className="max-w-7xl mx-auto p-6">
@@ -1430,8 +1463,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                 />
               )
             ) : (
-              <>
-              </>
+              <></>
             )}
 
             {activeTab === "active" && !classDetail.id && (
@@ -1819,11 +1851,11 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                           <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-medium text-gray-700">
                               Kết quả tìm kiếm (
-                              {searchUsers?.data.totalElements})
+                              {searchUsers?.data.page.totalElements})
                             </h3>
                             <div className="text-sm text-gray-500">
                               Trang {currentPage} /{" "}
-                              {searchUsers?.data.totalPages}
+                              {searchUsers?.data.page.totalPages}
                             </div>
                           </div>
 
@@ -1921,7 +1953,6 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                                 {/* Add Button */}
                                 <button
                                   onClick={() => {
-                                    console.log(user);
                                     const addedMember = {
                                       ...user,
                                       classId: classDetail.id
@@ -1940,7 +1971,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                           </div>
 
                           {/* Pagination */}
-                          {searchUsers?.data.totalElements > pageSize && (
+                          {searchUsers?.data.page.totalElements > pageSize && (
                             <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                               <button
                                 onClick={() =>
@@ -1957,7 +1988,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                               <div className="flex items-center space-x-1">
                                 {[
                                   ...Array(
-                                    Math.min(5, searchUsers?.data.totalPages)
+                                    Math.min(5, searchUsers?.data.page.totalPages)
                                   ),
                                 ].map((_, idx) => {
                                   const pageNum = idx + 1;
@@ -1982,7 +2013,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                                   handlePageChange(currentPage + 1)
                                 }
                                 disabled={
-                                  currentPage >= searchUsers?.data.totalPages
+                                  currentPage >= searchUsers?.data.page.totalPages
                                 }
                                 className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               >

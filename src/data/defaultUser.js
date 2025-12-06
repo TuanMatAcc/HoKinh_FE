@@ -1,0 +1,1 @@
+export const getDefaultUser = () => '{"name": "Khuyết danh", "role": ""}'

@@ -3,27 +3,31 @@ import api from "./client"
 export const sessionService = {
     createSessions: (facilityClassId, startDate, endDate, templates) => 
         api.post(
-            '/api/session/bulk-create-multi-day', 
+            '/api/session/admin/bulk-create-multi-day', 
             templates, 
             {
                 params: {facilityClassId, startDate, endDate}
             }
         ),
     getManagementSession: (startDate, endDate, classId) => api.get(
-        '/api/session/session-management',
+        '/api/session/admin/session-user-data',
         {params: {startDate, endDate, classId}}
     ),
     getStudentsInSession: (sessionId) => api.get(
-        `/api/session/${sessionId}/students-management`
+        `/api/session/admin/${sessionId}/student-data`
     ),
     createSessionAndUser: (session) => 
         api.post(
-            '/api/session/create-management', 
+            '/api/session/admin', 
             session
         ),
-    updateSessionAndUser: (session) => 
+    updateSessionAndUser: (sessionId, session) => 
         api.put(
-            '/api/session/update-management', 
+            `/api/session/admin/${sessionId}`, 
             session
         ),
+    deleteSessionAndUser: (sessionId) => 
+        api.delete(
+            `/api/session/admin/${sessionId}`
+        )
 }

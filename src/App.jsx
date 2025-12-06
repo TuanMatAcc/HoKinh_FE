@@ -1,14 +1,14 @@
-import "./App.css";
-import { Homepage } from "./pages/Homepage.jsx";
-import { LoginPage } from "./features/authentication/components/LoginPage.jsx";
-import { ArticlePage } from "./features/article/components/article-display.jsx";
+import "@/App.css";
+import { Homepage } from "@/pages/Homepage.jsx";
+import { LoginPage } from "@/pages/LoginPage.jsx";
+import { ArticlePage } from "@/features/article/components/article-display.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { DashboardPage } from "./pages/Dashboard.jsx";
-import ClassSessionManager from "./features/session_management/components/session_edit/ClassSessionEdit.jsx";
-import SessionManagement from "./pages/SessionManagement.jsx";
-import WebsiteManagement from "./pages/WebsiteManagement.jsx";
-import FacilityManagement from "./pages/FacilityManagement.jsx";
-import HVGenerator from "./pages/test2.jsx";
+import { DashboardPage } from "@/pages/Dashboard.jsx";
+import WebsiteManagement from "@/pages/WebsiteManagement.jsx";
+import FacilityManagement from "@/pages/FacilityManagement.jsx";
+import EquipmentManagement from "@/pages/EquipmentManagement.jsx";
+import UserManagement from "@/pages/UserManagement.jsx";
+import SessionManagement from "@/pages/SessionManagement.jsx";
 
 function App() {
   const router = createBrowserRouter([
@@ -42,11 +42,15 @@ function App() {
             },
             {
               path: "nguoi_dung", // results in /dashboard/website
-              element: <ClassSessionManager />,
+              element: <UserManagement />,
             },
             {
               path: "buoi_hoc", // results in /dashboard/website
               element: <SessionManagement />,
+            },
+            {
+              path: "thiet_bi",
+              element: <EquipmentManagement />,
             },
           ],
         },

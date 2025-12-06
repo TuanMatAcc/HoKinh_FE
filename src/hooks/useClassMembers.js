@@ -28,3 +28,25 @@ export const useInactiveClassMembers = ({classId}) => useQuery({
       }, {}),
     staleTime: 60000 * 5
 });
+
+export const deleteActiveClassMembers = ({classId, memIds, queryClient}) => queryClient.setQueryData(
+  ['members', 'active', classId],
+  prev => {
+    if(!prev) return prev;
+    return ({
+      ...prev,
+      data: prev.data.filter(mem => !memIds.includes(mem.id))
+    });
+  }
+)
+
+export const deleteInactiveClassMembers = ({classId, memIds, queryClient}) => queryClient.setQueryData(
+  ['members', 'inactive', classId],
+  prev => {
+    if(!prev) return prev;
+    return ({
+      ...prev,
+      data: prev.data.filter(mem => !memIds.includes(mem.id))
+    });
+  }
+)

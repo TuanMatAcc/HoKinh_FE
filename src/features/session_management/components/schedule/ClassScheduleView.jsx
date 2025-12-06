@@ -16,7 +16,7 @@ import SessionCard from "./SessionCard";
 import AnnouncementUI from "../../../../components/Announcement";
 import { useClassSessionInRange, useStudentInSession } from "../../../../hooks/useClassSessionInRange";
 import { useQueryClient } from "@tanstack/react-query";
-import { setQuerySession, setQuerySessionStudents } from "../../hooks/setQuerySession";
+import { deleteQuerySession, setQuerySession, setQuerySessionStudents } from "../../hooks/setQuerySession";
 import { sessionService } from "../../../../services/session_api";
 import { useActiveClassMembers } from "../../../../hooks/useClassMembers";
 import { ThreeDotLoader } from "../../../../components/ActionFallback";
@@ -39,6 +39,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
   });
   console.log(defaultUsers);
   const [showSuccess, setShowSuccess] = useState(null);
+  const successAction = useRef("");
   const [showError, setShowError] = useState(null);
   const errorMessage = useRef("");
 
@@ -87,6 +88,39 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     const nextWeekDays = stepAWeek({ direction: "up" });
     setSelectedDate(nextWeekDays[0].date);
     setWeekDays(nextWeekDays);
+  }
+
+  const onDeleteSession = async (sessionId) => {
+    console.log(sessionId);
+    try {
+      setInProgress(true);
+      const delSession = await sessionService.deleteSessionAndUser(sessionId);
+
+      console.log(delSession);
+      deleteQuerySession({
+        sessionId: sessionId,
+        selectedClassId: selectedClass.id,
+        startDate: weekDays[0].date,
+        endDate: weekDays[weekDays.length - 1].date,
+        queryClient: queryClient
+      });
+      setClickedSession(null);
+      setSessionDetail(null);
+      setIsEdit(false);
+      setShowSuccess(delSession.data.date);
+      successAction.current = 'xóa';
+    }
+    catch(error) {
+      if(error?.response) {
+        setShowError(true);
+        errorMessage.current = error.response.data;
+        console.log(error.response.data);
+      }
+      console.log(error);
+    }
+    finally {
+      setInProgress(false);
+    }
   }
 
   const onSaveSession = async () => {
@@ -169,7 +203,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
       };
       console.log(sessionData);
       try {
-        const updatedSession = await sessionService.updateSessionAndUser(sessionData, deletedUsers);
+        const updatedSession = await sessionService.updateSessionAndUser(sessionData.id, sessionData);
         
         setQuerySession({
           session: updatedSession.data,
@@ -184,6 +218,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
           queryClient: queryClient,
         });
         setShowSuccess(session.date);
+        successAction.current = 'cập nhật';
         setIsEdit(false);
         setSession(null);
       } catch (error) {
@@ -413,9 +448,9 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     <>
       {showSuccess && (
         <SuccessAnnouncement
-          actionAnnouncement={"Cập nhật thành công buổi học"}
+          actionAnnouncement={"Hoàn tất thao tác"}
           detailAnnouncement={
-            "Bạn đã cập nhật buổi học ngày " +
+            "Bạn đã " + successAction.current + " buổi học ngày " +
             convertDateInputToVN(showSuccess) +
             " thành công"
           }
@@ -482,6 +517,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
             onTimeChange={handleTimeChange}
             onSesionMemberDetailChange={onSesionMemberDetailChange}
             onSaveSession={onSaveFullSession}
+            onDeleteSession={onDeleteSession}
             onTextFieldChange={onSessionFieldChange}
             onSessionStatusChange={onSessionStatusChange}
           />
@@ -541,6 +577,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
               setClickedSession={setClickedSession}
               clickedSession={clickedSession}
               onSaveSession={onSaveSession}
+              onDeleteSession={onDeleteSession}
               setSessionDetail={setSessionDetail}
               defaultUsers={defaultUsers}
             />

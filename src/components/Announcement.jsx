@@ -2,7 +2,7 @@
 export default function AnnouncementUI({ message = "This is an important announcement!", setVisible }) {
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-70 p-4">
       
         <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-start gap-4">

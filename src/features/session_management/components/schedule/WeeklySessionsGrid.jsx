@@ -19,6 +19,7 @@ const WeeklySessionsGrid = ({
   clickedSession,
   setClickedSession,
   onSaveSession,
+  onDeleteSession,
   setSessionDetail,
   setIsEdit,
   defaultUsers,
@@ -243,6 +244,7 @@ const WeeklySessionsGrid = ({
           clickedSession={clickedSession}
           setClickedSession={setClickedSession}
           weekDays={weekDays}
+          onDeleteSession={onDeleteSession}
           onSaveSession={onSaveSession}
         />
       )}

@@ -9,6 +9,7 @@ const ClickedSessionModal = ({
   classId,
   weekDays,
   setClickedSession,
+  onDeleteSession,
   onSaveSession
 }) => {
     const handleTimeChange = (startTime, endTime) => {
@@ -213,6 +214,7 @@ const ClickedSessionModal = ({
           onAdd={onAddMembers}
           onDeleteMembers={onDeleteMembers}
           onTextFieldChange={() => {}}
+          onDeleteSession={onDeleteSession}
           onSaveSession={onSaveSession}
           onToggleAttended={onToggleAttended}
           onSesionMemberDetailChange={onSesionMemberDetailChange}

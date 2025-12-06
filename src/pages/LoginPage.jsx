@@ -1,13 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import logo from '@/assets/images/homepage/logo_rmbg.png'
-import { userService } from '@/services/user_api.js';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/auth_api';
 
 export function LoginPage() {
   const WAIT = 'wait';
+  const FAIL = "fail";
   const navigate = useNavigate();
-  const SUCCESS = 'success';
-  const FAIL = 'fail';
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -15,13 +14,13 @@ export function LoginPage() {
   const [resetEmail, setResetEmail] = useState('');
   const [authenticatingState, setAuthenticatingState] = useState('');
 
-  let message = '';
+  const message = useRef();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     console.log('Login:', { username, password });
     // Wait for response
-    if(!validateUsername(password)) {
+    if(!validateUsername(username)) {
       setAuthenticatingState(FAIL);
       return;
     }
@@ -30,12 +29,15 @@ export function LoginPage() {
       return;
     }
     setAuthenticatingState(WAIT)
-    const response = await userService.login({username, password});
+  
     // Handle error or successful event
     // TODO
     try {
-      // return navigate('/dashboard');
-      // setAuthenticatingState(SUCCESS);
+      const response = await authService.login({
+        id: username,
+        password: password,
+      });
+      return navigate("/dashboard");
     }
     catch(err) {
       if(err.code === 'ECONNABORTED') {
@@ -68,7 +70,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-red-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-red-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
         <div className="absolute bottom-20 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
@@ -87,7 +89,7 @@ export function LoginPage() {
             <div className="inline-flex items-center justify-center w-30 h-30 mb-4">
               <img src= {logo} alt="Logo" />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-blue-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold bg-linear-to-r from-red-600 to-blue-600 bg-clip-text text-transparent mb-2">
               {showForgotPassword ? 'Quên mật khẩu' : 'Đăng nhập'}
             </h1>
             <p className="text-gray-600">
@@ -188,7 +190,7 @@ export function LoginPage() {
               <button
                 onClick={handleLogin}
                 disabled={authenticatingState === WAIT}
-                className="w-full py-4 bg-gradient-to-r from-red-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 relative overflow-hidden group disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full py-4 bg-linear-to-r from-red-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 relative overflow-hidden group disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {authenticatingState === WAIT && (
@@ -196,7 +198,7 @@ export function LoginPage() {
                   )}
                   {authenticatingState === WAIT ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-red-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-red-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
             </div>
           ) : (
@@ -222,7 +224,7 @@ export function LoginPage() {
 
               <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
                 <div className="flex items-start">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-600 mr-3 mt-0.5 shrink-0">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
                   </svg>
                   <p className="text-sm text-blue-800">Chúng tôi sẽ gửi link khôi phục mật khẩu đến email của bạn</p>
@@ -231,7 +233,7 @@ export function LoginPage() {
 
               <button
                 onClick={handleForgotPassword}
-                className="w-full py-4 bg-gradient-to-r from-red-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                className="w-full py-4 bg-linear-to-r from-red-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
               >
                 Gửi link khôi phục
               </button>
