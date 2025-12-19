@@ -35,7 +35,7 @@ const ClassSessionEdit = ({ setView, facilities }) => {
     isOpen: false,
     day: null,
   });
-  const maxDaysPeriod = 90;
+  const maxDaysPeriod = 1000;
 
   // Initialize templates when days are selected
   const initializeTemplates = () => {

@@ -17,6 +17,7 @@ const WeeklySessionsGrid = ({
   sessions,
   selectedClass,
   clickedSession,
+  deletedUsers,
   setClickedSession,
   onSaveSession,
   onDeleteSession,
@@ -118,10 +119,12 @@ const WeeklySessionsGrid = ({
                       </div>
                       <span
                         className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                          daySession.status
+                          daySession.status === 0 ? daySession.autoStatus : 3
                         )}`}
                       >
-                        {getSessionStatus(daySession.status)}
+                        {getSessionStatus(
+                          daySession.status === 0 ? daySession.autoStatus : 3
+                        )}
                       </span>
                     </div>
 
@@ -143,7 +146,7 @@ const WeeklySessionsGrid = ({
                           e.stopPropagation();
                           setSessionDetail({
                             ...daySession,
-                            dayOfWeek: dayInfo.day
+                            dayOfWeek: dayInfo.day,
                           });
                           setIsEdit(true);
                         }}
@@ -196,12 +199,14 @@ const WeeklySessionsGrid = ({
                         className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center justify-center gap-1"
                         onClick={() => {
                           setIsEdit(true);
-                          setSessionDetail(getDefaultSessionForClass({
-                            classData: selectedClass,
-                            day: dayInfo.day,
-                            date: dayInfo.date,
-                            users: defaultUsers
-                          }));
+                          setSessionDetail(
+                            getDefaultSessionForClass({
+                              classData: selectedClass,
+                              day: dayInfo.day,
+                              date: dayInfo.date,
+                              users: defaultUsers,
+                            })
+                          );
                         }}
                       >
                         <Plus className="w-4 h-4" />
@@ -243,6 +248,7 @@ const WeeklySessionsGrid = ({
         <ClickedSessionModal
           clickedSession={clickedSession}
           setClickedSession={setClickedSession}
+          deletedUsers={deletedUsers}
           weekDays={weekDays}
           onDeleteSession={onDeleteSession}
           onSaveSession={onSaveSession}

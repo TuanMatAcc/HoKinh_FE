@@ -4,6 +4,7 @@ export const authService = {
     login: (loginRequest) => api.post("/api/auth/login", loginRequest)
                                 .then(res => {
                                     const token = res.data.token;
+                                    console.log(res.data.userInfo);
                                     localStorage.setItem("token", token);
                                     localStorage.setItem("userInfo", JSON.stringify(res.data.userInfo))
                                 }),

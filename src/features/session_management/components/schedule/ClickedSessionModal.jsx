@@ -3,9 +3,11 @@ import {
 } from "lucide-react";
 import getDay from "../../../../utils/getVietnameseDay";
 import SessionCard from "./SessionCard";
+import { useRef } from "react";
 
 const ClickedSessionModal = ({
   clickedSession,
+  deletedUsers,
   classId,
   weekDays,
   setClickedSession,
@@ -124,9 +126,15 @@ const ClickedSessionModal = ({
     };
 
     const onDeleteMembers = (dayOfWeek, memberId) => {
+      let exist = clickedSession.mainInstructors.find(
+        (instructor) => instructor.userId === memberId
+      );
+      if (exist.id) {
+        deletedUsers.current.push(exist.id);
+      }
       setClickedSession((clkSession) => ({
-        ...clickedSession,
-        mainInstructors: clickedSession.mainInstructors.filter(
+        ...clkSession,
+        mainInstructors: clkSession.mainInstructors.filter(
           (instructor) => instructor.userId !== memberId
         ),
       }));
@@ -180,7 +188,7 @@ const ClickedSessionModal = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
       <div
-        className="w-150 bg-white rounded-lg shadow-2xl border-4 border-blue-500 p-6 overflow-y-auto"
+        className="w-160 bg-white rounded-lg shadow-2xl border-4 border-blue-500 p-6 overflow-y-auto"
         style={{ maxHeight: "80vh" }}
       >
         {/* Header */}

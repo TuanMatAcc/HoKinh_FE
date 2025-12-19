@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import getDay from "../../../../utils/getVietnameseDay";
-import { getSessionStatus } from "../../../../utils/getStatusSession";
 import {
   Calendar,
   Clock,
@@ -11,7 +10,6 @@ import {
   XCircle,
   PlayCircle,
   CircleDashed,
-  ChevronDown,
   Check,
   Trash2,
 } from "lucide-react";
@@ -20,46 +18,57 @@ import SessionInstructorSection from "./SessionInstructorSection";
 import formatDate from "../../../../utils/formatDate";
 import { getStudyHour } from "../../../../utils/formatDateAndTimeType";
 import { ConfirmDialog } from "../../../../components/ConfirmDialog";
-
-// Status color utility
-const getStatusColor = (status) => {
-  switch (status) {
-    case 0: // Chưa bắt đầu
-      return "bg-blue-100 text-blue-700 border-blue-300";
-    case 1: // Đang diễn ra
-      return "bg-green-100 text-green-700 border-green-300";
-    case 2: // Đã kết thúc
-      return "bg-gray-100 text-gray-700 border-gray-300";
-    case 3: // Đã hủy
-      return "bg-red-100 text-red-700 border-red-300";
-    default:
-      return "bg-gray-100 text-gray-700 border-gray-300";
-  }
-};
+import { getStatusColor } from "../../../../utils/getStatusSession";
 
 // Status icon utility
-const getStatusIcon = (status) => {
-  switch (status) {
+export const getStatusIcon = (displayStatus, isCanceled) => {
+  if (isCanceled) {
+    return <XCircle className="w-4 h-4" />;
+  }
+
+  switch (displayStatus) {
     case 0:
       return <CircleDashed className="w-4 h-4" />;
     case 1:
       return <PlayCircle className="w-4 h-4" />;
     case 2:
       return <CheckCircle className="w-4 h-4" />;
-    case 3:
-      return <XCircle className="w-4 h-4" />;
     default:
       return <CircleDashed className="w-4 h-4" />;
   }
 };
 
-// Status options
-const STATUS_OPTIONS = [
-  { value: 0, label: "Chưa bắt đầu", icon: <CircleDashed className="w-4 h-4" /> },
-  { value: 1, label: "Đang diễn ra", icon: <PlayCircle className="w-4 h-4" /> },
-  { value: 2, label: "Đã kết thúc", icon: <CheckCircle className="w-4 h-4" /> },
-  { value: 3, label: "Đã hủy", icon: <XCircle className="w-4 h-4" /> },
-];
+// Display status options - for automatic status when not canceled
+const AUTO_STATUS_DISPLAY = {
+  0: { label: "Chưa bắt đầu", icon: <CircleDashed className="w-4 h-4" /> },
+  1: { label: "Đang diễn ra", icon: <PlayCircle className="w-4 h-4" /> },
+  2: { label: "Đã kết thúc", icon: <CheckCircle className="w-4 h-4" /> },
+};
+
+const CANCELED_STATUS = { 
+  label: "Đã hủy", 
+  icon: <XCircle className="w-4 h-4" /> 
+};
+
+const getDisplayStatusInfo = (session) => {
+  const isCanceled = session.status === 1;
+
+  if (isCanceled) {
+    return {
+      displayStatus: null,
+      label: CANCELED_STATUS.label,
+      isCanceled: true,
+    };
+  }
+
+  // Auto-calculate status based on time
+  const autoStatus = session.autoStatus || 0; // This should come from your time calculation
+  return {
+    displayStatus: autoStatus,
+    label: AUTO_STATUS_DISPLAY[autoStatus]?.label || "Chưa bắt đầu",
+    isCanceled: false,
+  };
+};
 
 // Session Card Component
 const SessionCard = ({
@@ -149,17 +158,6 @@ const SessionCard = ({
     setTempEndTime(e.target.value);
     setTimeError("");
   };
-
-    const handleStatusClick = () => {
-      setIsStatusDropdownOpen(!isStatusDropdownOpen);
-    };
-
-    const handleStatusChange = (newStatus) => {
-      if (newStatus !== session.status) {
-        onSessionStatusChange && onSessionStatusChange(newStatus);
-      }
-      setIsStatusDropdownOpen(false);
-    };
 
     // Close dropdown when clicking outside
     const handleClickOutside = (e) => {
@@ -267,42 +265,44 @@ const SessionCard = ({
           </div>
         </div>
 
-        {/* Status Badge with Dropdown */}
-        <div className="relative" ref={statusDropdownRef}>
-          <button
-            onClick={handleStatusClick}
-            className={`flex items-center gap-2 px-3 py-1 rounded-full border-2 font-medium text-sm cursor-pointer hover:opacity-80 transition ${getStatusColor(
-              session.status
+        {/* Status Display and Cancel Button */}
+        <div className="flex items-center gap-3">
+          {/* Status Display Badge */}
+          <div
+            className={`flex items-center gap-2 px-3 py-1 rounded-full border-2 font-medium text-sm ${getStatusColor(
+              session.autoStatus || 0,
+              session.status === 1
             )}`}
-            title="Click để thay đổi trạng thái"
           >
-            {getStatusIcon(session.status)}
-            <span>{getSessionStatus(session.status)}</span>
-            <ChevronDown className="w-3.5 h-3.5" />
-          </button>
+            {getStatusIcon(session.autoStatus || 0, session.status === 1)}
+            <span>{getDisplayStatusInfo(session).label}</span>
+          </div>
 
-          {/* Dropdown Menu */}
-          {isStatusDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border-2 border-purple-200 z-10">
-              {STATUS_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleStatusChange(option.value)}
-                  className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-purple-50 transition first:rounded-t-lg last:rounded-b-lg ${
-                    option.value === session.status
-                      ? "bg-purple-100 font-semibold"
-                      : ""
-                  }`}
-                >
-                  {option.icon}
-                  <span>{option.label}</span>
-                  {option.value === session.status && (
-                    <Check className="w-4 h-4 ml-auto text-purple-600" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Cancel/Uncancel Button */}
+          <button
+            onClick={() => {
+              const newStatus = session.status === 1 ? 0 : 1;
+              onSessionStatusChange(newStatus);
+            }}
+            className={`flex items-center gap-2 px-3 py-1 rounded-full border-2 font-medium text-sm cursor-pointer hover:opacity-80 transition ${
+              session.status === 1
+                ? "bg-green-100 text-green-700 border-green-300"
+                : "bg-red-100 text-red-700 border-red-300"
+            }`}
+            title={session.status === 1 ? "Bỏ hủy buổi học" : "Hủy buổi học"}
+          >
+            {session.status === 1 ? (
+              <>
+                <Check className="w-4 h-4" />
+                <span>Bỏ hủy</span>
+              </>
+            ) : (
+              <>
+                <XCircle className="w-4 h-4" />
+                <span>Hủy buổi</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -442,7 +442,7 @@ const SessionCard = ({
           className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium shadow-sm hover:shadow-md"
           onClick={() => setShowDeleteConfirm(true)}
         >
-          <Trash2 size={20}/>
+          <Trash2 size={20} />
           <span>Xóa</span>
         </button>
         <button

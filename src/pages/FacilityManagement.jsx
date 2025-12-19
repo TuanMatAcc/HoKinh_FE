@@ -371,7 +371,9 @@ const FacilityManagement = () => {
             }
             else {
                 // Update on backend
-                facility.image = await handleUpload(image);
+                if(image) {
+                  facility.image = await handleUpload(image);
+                }
                 returnedData = (await facilityService.create(facility)).data;
                 // update on local state
                 queryClient.setQueryData(['facilities', 'management'], oldData => {
@@ -427,7 +429,7 @@ const FacilityManagement = () => {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
         <div className="flex">
         <img 
-            src={facility.image} 
+            src={facility.image || null}
             alt={facility.name}
             className="w-48 h-48 object-cover"
         />

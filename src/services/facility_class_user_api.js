@@ -9,5 +9,5 @@ export const facilityClassUserService = {
         api.delete('/api/facility-class-user/admin/delete-class-members', {
             params: { classId },
             data: members,
-    })
+    }),
 }

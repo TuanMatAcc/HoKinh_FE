@@ -1,11 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MapPin, FileText, Trophy } from 'lucide-react';
 import { BranchesSection } from '../features/facility/components/facility_section';
 import { AwardSection } from '../features/award/components/award_section';
 import ArticleManagement from '../features/article/components/article_management';
-import { facilityService } from '../services/facility_api';
-import { awardService } from '../services/award_api';
-import { useQuery } from '@tanstack/react-query';
 
 const WebsiteManagement = () => {
 

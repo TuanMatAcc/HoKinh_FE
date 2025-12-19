@@ -9,6 +9,12 @@ import FacilityManagement from "@/pages/FacilityManagement.jsx";
 import EquipmentManagement from "@/pages/EquipmentManagement.jsx";
 import UserManagement from "@/pages/UserManagement.jsx";
 import SessionManagement from "@/pages/SessionManagement.jsx";
+import InteractiveMap from "./features/map/components/Map";
+import InstructorSessionUI from "./pages/Instructor/Schedule";
+import InstructorStatisticsDetailPage from "./pages/DetailInstructorSessionStatistics";
+import StatisticsManagement from "./pages/StatisticsManagement";
+import SessionStatisticsInstructor from "./pages/Instructor/SessionStatisticsManagementForInstructor";
+import InstructorDashboardPage from "./pages/Instructor/InstructorDashboard";
 
 function App() {
   const router = createBrowserRouter([
@@ -27,6 +33,10 @@ function App() {
         {
           path: "/article/:id",
           element: <ArticlePage />,
+        },
+        {
+          path: "/map",
+          element: <InteractiveMap />,
         },
         {
           path: "/dashboard",
@@ -52,7 +62,29 @@ function App() {
               path: "thiet_bi",
               element: <EquipmentManagement />,
             },
+            {
+              path: "thong_ke",
+              element: <StatisticsManagement />,
+            },
           ],
+        },
+        {
+          path: "/huan_luyen_vien",
+          element: <InstructorDashboardPage />,
+          children: [
+            {
+              path: "lich_day",
+              element: <InstructorSessionUI />,
+            },
+            {
+              path: "thong_ke",
+              element: <SessionStatisticsInstructor />,
+            },
+          ],
+        },
+        {
+          path: "/thong_ke_hlv",
+          element: <SessionStatisticsInstructor />,
         },
       ],
     },

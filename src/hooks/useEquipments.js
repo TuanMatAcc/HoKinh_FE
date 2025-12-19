@@ -5,6 +5,6 @@ export function useEquipments() {
     return useQuery({
         queryKey: ['equipments', 'management'],
         queryFn: () => equipmentService.getEquipments(),
-        staleTime: 60000 * 5
+        staleTime: 0
     });
 }

@@ -1,4 +1,4 @@
-import { useState, useRef, act } from "react";
+import { useState, useRef, act, useEffect } from "react";
 import {
   Save,
   X,
@@ -15,6 +15,8 @@ import AnnouncementUI from "../../../../components/Announcement";
 import { ConfirmDialog } from "../../../../components/ConfirmDialog";
 import { ThreeDotLoader } from "../../../../components/ActionFallback";
 import validateFacilityForm from "../../../../hooks/ValidateFacility";
+import { getCoordsFromShortUrl } from "../../../../utils/getCoordinatesFromLink";
+import { geocodingService } from "../../../../services/geocoding_api";
 
 const EditFacility = ({ managerOptions, facility, setFacility, onSave, onCancel }) => {
   console.log(managerOptions);
@@ -114,6 +116,7 @@ const EditFacility = ({ managerOptions, facility, setFacility, onSave, onCancel 
     if (validateForm()) {
       try {
         console.log(formData);
+        console.log(imageFile.current);
         setShowConfirmDialog(false);
         setInProgress(true);
         const returnedData = await onSave({
@@ -129,7 +132,7 @@ const EditFacility = ({ managerOptions, facility, setFacility, onSave, onCancel 
           }));
         }
         clearFile();
-        setInProgress(false);
+        setInProgress(false); 
         onCancel();
       } catch (error) {
         setShowError(true);
@@ -145,6 +148,34 @@ const EditFacility = ({ managerOptions, facility, setFacility, onSave, onCancel 
   const handleCancel = () => {
     onCancel();
   };
+
+  useEffect(() => {
+    if (!formData.mapsLink) return;
+
+    const fetchCoords = async () => {
+      try {
+        const coordinates = await getCoordsFromShortUrl(formData.mapsLink);
+        setFormData((form) => ({
+          ...form,
+          latitude: coordinates.lat,
+          longitude: coordinates.lng,
+        }));
+        const address = (await geocodingService.getAddress(coordinates.lat, coordinates.lng)).data;
+
+        console.log(address); // "123 Street, District 1, Ho Chi Minh City, Vietnam"
+
+        setFormData((form) => ({
+          ...form,
+          address:address
+        }));
+      } catch (err) {
+        console.error("Invalid Google Maps link:", err);
+      }
+    };
+
+    fetchCoords();
+  }, [formData.mapsLink]);
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -229,27 +260,6 @@ const EditFacility = ({ managerOptions, facility, setFacility, onSave, onCancel 
               )}
             </div>
 
-            {/* Address */}
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="w-4 h-4 inline mr-1" />
-                Địa chỉ
-              </label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Nhập địa chỉ cơ sở"
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.address ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.address && (
-                <p className="mt-1 text-sm text-red-500">{errors.address}</p>
-              )}
-            </div>
-
             {/* Phone Number */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -287,14 +297,13 @@ const EditFacility = ({ managerOptions, facility, setFacility, onSave, onCancel 
                   // Update manager's id
                   handleChange(e);
                   // Update manager's name
-                  if(e.target.value !== '') {
+                  if (e.target.value !== "") {
                     setFormData((prev) => ({
                       ...prev,
                       managerName:
                         e.target.options[e.target.selectedIndex].text,
                     }));
-                  }
-                  else {
+                  } else {
                     setFormData((prev) => ({
                       ...prev,
                       managerName: "",
@@ -314,9 +323,11 @@ const EditFacility = ({ managerOptions, facility, setFacility, onSave, onCancel 
                           bg-size-[1.5em_1.5em] bg-position-[right_0.5rem_center] bg-no-repeat"
               >
                 <option value="">Không</option>
-                {managerOptions.map(((manager) => (
-                  <option key={manager.userId} value={manager.userId}>{manager.userName}</option>
-                )))}
+                {managerOptions.map((manager) => (
+                  <option key={manager.userId} value={manager.userId}>
+                    {manager.userName}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -378,6 +389,27 @@ const EditFacility = ({ managerOptions, facility, setFacility, onSave, onCancel 
               <p className="mt-1 text-xs text-gray-500">
                 Dán liên kết từ Google Maps để hiển thị vị trí chính xác
               </p>
+            </div>
+
+            {/* Address */}
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <MapPin className="w-4 h-4 inline mr-1" />
+                Địa chỉ
+              </label>
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Nhập địa chỉ cơ sở"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.address ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.address && (
+                <p className="mt-1 text-sm text-red-500">{errors.address}</p>
+              )}
             </div>
 
             {/* Latitude */}

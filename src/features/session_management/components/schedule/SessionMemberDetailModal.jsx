@@ -13,6 +13,8 @@ const SessionMemberDetailModal = ({ sessionMember, isOpen, onClose, onSave }) =>
     review: sessionMember.review || "",
     checkinTime: sessionMember.checkinTime || "",
   });
+  console.log(editData);
+  
   const [isEditTime, setIsEditTime] = useState(false);
   console.log(editData);
 
@@ -23,8 +25,7 @@ const SessionMemberDetailModal = ({ sessionMember, isOpen, onClose, onSave }) =>
 
   const formatCheckinDate = (time) => {
     if (!time) return "";
-    const date = new Date(time);
-    return date.toISOString().slice(0, 10); // YYYY-MM-DD
+    return time.slice(0, 10); // YYYY-MM-DD
   };
 
   const formatCheckinTime = (time) => {
@@ -45,11 +46,15 @@ const SessionMemberDetailModal = ({ sessionMember, isOpen, onClose, onSave }) =>
   };
 
   const handleTimeChange = (timeValue) => {
+    
     if (!timeValue) return;
     const dateValue =
       formatCheckinDate(editData.checkinTime) ||
       new Date().toISOString().slice(0, 10);
     const combined = `${dateValue}T${timeValue}:00`;
+    console.log(dateValue);
+    console.log(combined);
+    
     setEditData({ ...editData, checkinTime: combined });
   };
 

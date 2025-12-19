@@ -84,7 +84,7 @@ const SelectField = ({
       value={value}
       onChange={onChange}
       required={required}
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      className="appearance-none w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
     >
       <option value="">Chọn cơ sở</option>
       {options.map((option) => (
@@ -200,6 +200,7 @@ const CreateEquipmentPage = ({
   setShowError,
   setInProgress
 }) => {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: "",
     facilityId: "",
@@ -234,7 +235,7 @@ const CreateEquipmentPage = ({
       fixableDescription: "",
       goodDescription: "",
     });
-    setAlert(null);
+    setView('list');
   };
 
   const handleSubmit = async (e) => {
@@ -268,10 +269,9 @@ const CreateEquipmentPage = ({
     };
     try {
       setInProgress("Đang tạo thiết bị");
-      const createdEquipment = await equipmentService.createEquipment(equipmentData);
+      const createdEquipment = (await equipmentService.createEquipment(equipmentData)).data;
       setView("list");
       setShowSuccess("Tạo thiết bị thành công");
-      const queryClient = useQueryClient();
       queryClient.setQueryData(["equipments", "management"], prev => {
         if(!prev) return prev;
         return ({
@@ -311,6 +311,7 @@ const CreateEquipmentPage = ({
             <Button
               title={"Quay lại trang quản lý thiết bị"}
               icon={<ArrowLeft/>}
+              handleOnClick={() => setView('list')}
               background={false}
             />
           }

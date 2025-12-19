@@ -15,8 +15,9 @@ const validateFacilityForm = ({editFacilityForm}) => {
       newErrors.phoneNumber = "Số điện thoại phải có 10 chữ số";
     }
 
-    if (
-      editFacilityForm.latitude &&
+    if (!editFacilityForm.latitude.toString(10).trim()) {
+      newErrors.latitude = "Vĩ độ cơ sở là bắt buộc";
+    } else if (
       (isNaN(editFacilityForm.latitude) ||
         editFacilityForm.latitude < -90 ||
         editFacilityForm.latitude > 90)
@@ -24,8 +25,9 @@ const validateFacilityForm = ({editFacilityForm}) => {
       newErrors.latitude = "Vĩ độ phải là số từ -90 đến 90";
     }
 
-    if (
-      editFacilityForm.longitude &&
+    if (!editFacilityForm.longitude.toString(10).trim()) {
+      newErrors.longitude = "Kinh độ cơ sở là bắt buộc";
+    } else if (
       (isNaN(editFacilityForm.longitude) ||
         editFacilityForm.longitude < -180 ||
         editFacilityForm.longitude > 180)

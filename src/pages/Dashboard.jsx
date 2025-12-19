@@ -44,6 +44,7 @@ export function DashboardPage() {
       label: "Thiết bị",
       path: "thiet_bi",
     },
+    { id: "statistics", icon: Calendar, label: "Thống kê", path: "thong_ke" },
   ];
 
   // Close dropdown when clicking outside
@@ -72,6 +73,8 @@ export function DashboardPage() {
     setAccountDropdownOpen(false);
   };
 
+  console.log(user.name);
+  
   return (
     <div className="flex h-screen bg-linear-to-br from-gray-50 to-gray-100">
       {/* Sidebar */}
@@ -80,12 +83,9 @@ export function DashboardPage() {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-blue-700/50">
+        <div className="flex items-center justify-between p-6 border-b border-white/50">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-linear-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center font-bold text-blue-900 shadow-lg">
-              VĐ
-            </div>
-            <h1 className="text-xl font-bold">Võ Đạo</h1>
+            <h1 className="text-xl font-bold">Câu Lạc Bộ Hổ Kình</h1>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}

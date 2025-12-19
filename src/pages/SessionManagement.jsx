@@ -1,17 +1,6 @@
 import { useState } from "react";
 import {
-  Calendar,
-  Clock,
-  Users,
-  UserCheck,
-  UserX,
   Plus,
-  ChevronLeft,
-  ChevronRight,
-  Edit2,
-  Trash2,
-  ArrowLeft,
-  X
 } from "lucide-react";
 import Button from "../components/Button";
 import ClassSessionEdit from "../features/session_management/components/session_edit/ClassSessionEdit";

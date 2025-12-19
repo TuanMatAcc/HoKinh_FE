@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   Calendar,
   Clock,
-  Plus,
   ArrowLeft,
 } from "lucide-react";
 import getDay from "../../../../utils/getVietnameseDay";
@@ -48,6 +47,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
     endDate: weekDays[weekDays.length - 1].date,
     classId: selectedClass.id,
   });
+  console.log(sessions);
 
   useEffect(() => {
     if (selectedDate) {
@@ -575,6 +575,7 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
               weekDays={weekDays}
               setIsEdit={setIsEdit}
               setClickedSession={setClickedSession}
+              deletedUsers={deletedUsers}
               clickedSession={clickedSession}
               onSaveSession={onSaveSession}
               onDeleteSession={onDeleteSession}

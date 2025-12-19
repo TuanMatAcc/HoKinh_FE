@@ -29,5 +29,21 @@ export const sessionService = {
     deleteSessionAndUser: (sessionId) => 
         api.delete(
             `/api/session/admin/${sessionId}`
-        )
+        ),
+    getInstructorSessions: (startDate, endDate) => api.get(
+        '/api/session/instructor/session-user-data',
+        {params: {startDate, endDate}}
+    ),
+    reportSession: (updatedSession) => api.put(
+        '/api/session/instructor/report-session',
+        updatedSession
+    ),
+    getInstructorSessionStatistics: (facilityId, startDate, endDate) => api.get(
+        '/api/session/admin/statistics-instructor-session',
+        {params: {facilityId, startDate, endDate}}
+    ),
+    getSessionStatisticsForInstructor: (startDate, endDate) => api.get(
+        '/api/session/instructor/session-statistics',
+        {params: {startDate, endDate}}
+    )
 }
