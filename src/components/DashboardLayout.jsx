@@ -14,7 +14,7 @@ import { getDefaultUser } from "../data/defaultUser";
 
 export function DashboardLayout({ menuItems, description }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState("website");
+  const [currentPage, setCurrentPage] = useState("");
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -52,8 +52,6 @@ export function DashboardLayout({ menuItems, description }) {
     // TODO: Navigate to settings page
     setAccountDropdownOpen(false);
   };
-
-  console.log(user.name);
 
   return (
     <div className="flex h-screen bg-linear-to-br from-gray-50 to-gray-100">

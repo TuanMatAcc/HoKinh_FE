@@ -16,3 +16,4 @@ export default function getBeltLabel(value) {
 
   return beltMap[value] || "Không xác định";
 }
+

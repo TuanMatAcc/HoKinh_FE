@@ -45,5 +45,9 @@ export const sessionService = {
     getSessionStatisticsForInstructor: (startDate, endDate) => api.get(
         '/api/session/instructor/session-statistics',
         {params: {startDate, endDate}}
-    )
+    ),
+    getScheduleForStudent: (startDate, endDate) => api.get(
+        '/api/session/student/schedule',
+        {params: {startDate, endDate}}
+    ),
 }

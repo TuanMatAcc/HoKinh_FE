@@ -7,14 +7,15 @@ import { DashboardPage } from "@/pages/Dashboard.jsx";
 import WebsiteManagement from "@/pages/WebsiteManagement.jsx";
 import FacilityManagement from "@/pages/FacilityManagement.jsx";
 import EquipmentManagement from "@/pages/EquipmentManagement.jsx";
-import UserManagement from "@/pages/UserManagement.jsx";
 import SessionManagement from "@/pages/SessionManagement.jsx";
 import InteractiveMap from "./features/map/components/Map";
 import InstructorSessionUI from "./pages/Instructor/Schedule";
-import InstructorStatisticsDetailPage from "./pages/DetailInstructorSessionStatistics";
 import StatisticsManagement from "./pages/StatisticsManagement";
 import SessionStatisticsInstructor from "./pages/Instructor/SessionStatisticsManagementForInstructor";
 import InstructorDashboardPage from "./pages/Instructor/InstructorDashboard";
+import StudentSchedule from "./pages/Student/ScheduleForStudent";
+import StudentDashboardPage from "./pages/Student/StudentDashboard";
+import UserManagement from "./pages/UserManagement";
 
 function App() {
   const router = createBrowserRouter([
@@ -75,6 +76,20 @@ function App() {
             {
               path: "lich_day",
               element: <InstructorSessionUI />,
+            },
+            {
+              path: "thong_ke",
+              element: <SessionStatisticsInstructor />,
+            },
+          ],
+        },
+        {
+          path: "/vo_sinh",
+          element: <StudentDashboardPage />,
+          children: [
+            {
+              path: "lich_hoc",
+              element: <StudentSchedule />,
             },
             {
               path: "thong_ke",

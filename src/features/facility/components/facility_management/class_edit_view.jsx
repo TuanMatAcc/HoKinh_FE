@@ -932,18 +932,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
               )}
 
               {/* Row 5: Hình đại diện (full width) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hình đại diện
-                </label>
-                <div className="flex items-center gap-3">
-                  <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2">
-                    <Camera size={18} />
-                    Chọn ảnh
-                  </button>
-                  <span className="text-sm text-gray-500">Chưa chọn file</span>
-                </div>
-              </div>
+              
             </div>
             <div className="flex gap-2 justify-end pt-2 border-t">
               <button

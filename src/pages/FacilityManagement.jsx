@@ -71,8 +71,9 @@ const FacilityManagement = () => {
                                 ...u,
                                 facilityId: facilityId,
                                 classId: classInfo.id,
-                                password: "12345678"
-                              }))
+                                password: "aaaaaaaa"
+                              })),
+                              classInfo.id
                             )).data;
                             result = result.map((user) => ({
                               ...user,
@@ -169,19 +170,15 @@ const FacilityManagement = () => {
                 console.log("Users need to update");
                 console.log(usersToUpdate);
                 if(usersToUpdate.length !== 0) {
-                    await userService.updateUsers(usersToUpdate);
+                  await userService.updateUsers(usersToUpdate, classInfo.id);
                 }
-                // queryClient.setQueryData(["members", "active", classInfo.id], prev => ({
-                //     ...prev,
-                //     data: prev.data.map((mem) => mem.id === )
-                // }));
                 
                 console.log("Update multiple users success");
                 if(classMembersChangeStatus.length !== 0) {
                     await facilityClassUserService.updateUsersInClass({
                         facilityClassId: classInfo.id,
                         users: classMembersChangeStatus
-                    });
+                    }, classInfo.id);
                 }
                 console.log("Update users in class success");
                 
@@ -230,8 +227,9 @@ const FacilityManagement = () => {
                             ...u,
                             facilityId: facilityId,
                             classId: createdClass.id,
-                            password: "12345678",
-                          }))
+                            password: "aaaaaaaa",
+                          })),
+                          createdClass.id
                         )
                       ).data;
                       result = result.map((user) => ({

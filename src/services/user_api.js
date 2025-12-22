@@ -11,8 +11,12 @@ export const userService = {
   getActiveCoachInstructorByName: (searchKey, page, size) => api.get('/api/user/admin/active-coach-instructor-by-name', {
     params: {searchKey, page, size}
   }),
-  updateUsers: (users) => api.put('/api/user/admin/bulk-update', users),
-  createMemberForClass: (users) => api.post('/api/user/admin/create-member-for-class', users),
+  updateUsers: (users, classId) => api.put('/api/user/admin/bulk-update', users, {params: {classId}}),
+  createMemberForClass: (users, classId) => api.post(
+    '/api/user/admin/create-member-for-class', 
+    users, 
+    {params: {classId}}
+  ),
   getManagersAsOptions: () => api.get('/api/user/admin/all-manager-options'),
   
   // Special handling for import - must detect response type
@@ -34,5 +38,6 @@ export const userService = {
       // It's an Excel file
       return { type: 'blob', data: response.data, headers: response.headers };
     }
-  }
+  },
+  getFacilityUsers: (facilityId) => api.get('/api/user/admin/get-facility-users', {params: {facilityId}})
 }

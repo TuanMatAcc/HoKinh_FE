@@ -24,6 +24,7 @@ import { sessionService } from "../../services/session_api";
 import { useQueryClient } from "@tanstack/react-query";
 import AnnouncementUI from "../../components/Announcement";
 import { getStudyHour } from "../../utils/formatDateAndTimeType";
+import { convertFromDateInputToVN } from "../../utils/formatDateAndTimeType";
 
 // Helper function to format time from LocalDateTime
 const formatCheckinTime = (localDateTime) => {
@@ -87,18 +88,6 @@ const CheckinTimeDisplay = ({ checkinTime, date, startTime }) => {
       </span>
     </div>
   );
-};
-
-// Utility Functions
-const convertDateInputToVN = (dateStr, format) => {
-  const date = new Date(dateStr);
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear();
-
-  if (format === "m") return `${day}/${month}`;
-  if (format === "y") return `${day}/${month}/${year}`;
-  return `${day}/${month}/${year}`;
 };
 
 const isCheckInEnabled = (date, startTime, endTime) => {
@@ -487,7 +476,7 @@ const DayColumn = ({
             isToday ? "text-blue-600" : "text-gray-600"
           }`}
         >
-          {convertDateInputToVN(dayInfo.date, "y")}
+          {convertFromDateInputToVN(dayInfo.date, "y")}
         </p>
       </div>
 
