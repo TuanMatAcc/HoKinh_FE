@@ -82,3 +82,9 @@ export const convertFromDateInputToVN = (dateStr, format) => {
   if (format === "y") return `${day}/${month}/${year}`;
   return `${day}/${month}/${year}`;
 };
+
+export const getBriefDayNameFromNumber = (dayNumber) => {
+    const days = [1, 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    // day number - 1 = index (start from 0)
+    return days[parseInt(dayNumber-1)];
+};

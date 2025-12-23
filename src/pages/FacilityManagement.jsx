@@ -13,6 +13,8 @@ import { facilityClassUserService } from '../services/facility_class_user_api';
 import pLimit from 'p-limit';
 import { useManagerOptions } from '../hooks/useManagerOptionsData'
 import { ThreeDotLoader } from '../components/ActionFallback';
+import FacilityDetail from '../features/facility/components/facility_management/FacilityDetail';
+import FacilityCard from '../features/facility/components/facility_management/FacilityCard';
 import { useFacility } from '../hooks/useFacilityData';
 import Header from '../components/Header';
 import { deleteActiveClassMembers, deleteInactiveClassMembers } from '../hooks/useClassMembers';
@@ -395,16 +397,6 @@ const FacilityManagement = () => {
         }
     }
 
-    const getDayName = (dayNumber) => {
-        const days = [1, 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-        // day number - 1 = index (start from 0)
-        return days[parseInt(dayNumber-1)];
-    };
-
-    const formatDays = (daysString) => {
-        return daysString.split('-').map(d => getDayName(d)).join(', ');
-    };
-
     const filteredFacilities = !facilities ? [] : facilities.data
     .filter(f => {
         const matchesSearch = f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -422,288 +414,6 @@ const FacilityManagement = () => {
         if (sortBy === 'managerName') return a.managerName.localeCompare(b.managerName);
         return 0;
     });
-
-    const FacilityCard = ({ facility }) => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-        <div className="flex">
-        <img 
-            src={facility.image || null}
-            alt={facility.name}
-            className="w-48 h-48 object-cover"
-        />
-        <div className="flex-1 p-6">
-            <div className="flex items-start justify-between mb-4">
-            <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">{facility.name}</h3>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                facility.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}>
-                {facility.isActive ? 'Đang hoạt động' : 'Tạm ngưng'}
-                </span>
-            </div>
-            <div className="flex gap-2">
-                <button 
-                onClick={() => {
-                    setSelectedFacility(facility);
-                    setView('detail');
-                }}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                <Eye className="w-5 h-5" />
-                </button>
-                <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                <Edit className="w-5 h-5" />
-                </button>
-            </div>
-            </div>
-            
-            <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-gray-400" />
-                <span>{facility.address}</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-gray-400" />
-                <span>{facility.phoneNumber}</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-gray-400" />
-                <span>Quản lý: <strong>{facility.managerName}</strong></span>
-            </div>
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Số lớp học: <strong className="text-gray-900">{facility.classes.length}</strong></span>
-                <button 
-                onClick={() => {
-                    setSelectedFacility(facility);
-                    setView('detail');
-                }}
-                className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                >
-                Xem chi tiết
-                <ChevronRight className="w-4 h-4" />
-                </button>
-            </div>
-            </div>
-        </div>
-        </div>
-    </div>
-    );
-
-    const FacilityDetail = ({ facility }) => (
-    <div className="space-y-6">
-        <div className="flex items-center justify-between">
-        <button 
-            onClick={() => {
-                setSelectedFacility(null);
-                setView('list');
-            }}
-            className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
-        >
-            <ChevronRight className="w-5 h-5 rotate-180" />
-            Quay lại danh sách
-        </button>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <img 
-            src={facility.image} 
-            alt={facility.name}
-            className="w-full h-80 object-cover"
-        />
-        
-        <div className="p-8">
-            <div className="flex items-start justify-between mb-6">
-            <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{facility.name}</h2>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                facility.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}>
-                {facility.isActive ? 'Đang hoạt động' : 'Tạm ngưng'}
-                </span>
-            </div>
-            <button 
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                onClick={() => {
-                    setView('edit');
-                    setSelectedFacility(facility);
-                }}
-            >
-                <Edit className="w-4 h-4" />
-                Chỉnh sửa
-            </button>
-            </div>
-
-            {/* Basic Information Section */}
-            <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                Thông tin cơ bản
-            </h3>
-            <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-4">
-                <div>
-                    <label className="text-sm font-medium text-gray-500 block mb-1">Tên cơ sở</label>
-                    <p className="text-gray-900 font-medium">{facility.name}</p>
-                </div>
-                
-                <div>
-                    <label className="text-sm font-medium text-gray-500 block mb-1">Địa chỉ</label>
-                    <div className="flex items-start gap-2">
-                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
-                    <p className="text-gray-900">{facility.address}</p>
-                    </div>
-                </div>
-                
-                <div>
-                    <label className="text-sm font-medium text-gray-500 block mb-1">Số điện thoại</label>
-                    <div className="flex items-center gap-2">
-                    <Phone className="w-5 h-5 text-gray-400" />
-                    <p className="text-gray-900">{facility.phoneNumber}</p>
-                    </div>
-                </div>
-
-                <div>
-                    <label className="text-sm font-medium text-gray-500 block mb-1">Quản lý cơ sở</label>
-                    <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-gray-400" />
-                    <p className="text-gray-900 font-semibold">{facility.managerName}</p>
-                    </div>
-                </div>
-                </div>
-
-                <div className="space-y-4">
-                <div>
-                    <label className="text-sm font-medium text-gray-500 block mb-1">Mô tả</label>
-                    <p className="text-gray-900 text-sm leading-relaxed">{facility.description}</p>
-                </div>
-
-                <div>
-                    <label className="text-sm font-medium text-gray-500 block mb-1">Liên kết Google Maps</label>
-                    <a 
-                    href={facility.mapsLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700 flex items-center gap-2 text-sm"
-                    >
-                    <ExternalLink className="w-4 h-4" />
-                    Xem trên bản đồ
-                    </a>
-                </div>
-
-                <div>
-                    <label className="text-sm font-medium text-gray-500 block mb-1">Tọa độ</label>
-                    <div className="flex items-center gap-2 text-sm">
-                    <Navigation className="w-4 h-4 text-gray-400" />
-                    <p className="text-gray-900">
-                        <span className="font-mono">{facility.latitude}</span>, <span className="font-mono">{facility.longitude}</span>
-                    </p>
-                    </div>
-                </div>
-
-                <div>
-                    <label className="text-sm font-medium text-gray-500 block mb-1">Trạng thái</label>
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                    facility.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                    {facility.isActive ? 'Đang hoạt động' : 'Tạm ngưng'}
-                    </span>
-                </div>
-                </div>
-            </div>
-            </div>
-
-            {/* Timestamps Section */}
-            <div className="mb-8 pb-8 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <CalendarClock className="w-5 h-5 text-blue-600" />
-                Thông tin thời gian
-            </h3>
-            <div className="grid grid-cols-2 gap-6">
-                <div>
-                <label className="text-sm font-medium text-gray-500 block mb-1">Ngày tạo</label>
-                <p className="text-gray-900">{formatDate({dateString: facility.createdAt, showTime: true, region: 'vi-VN'})}</p>
-                </div>
-                <div>
-                <label className="text-sm font-medium text-gray-500 block mb-1">Cập nhật lần cuối</label>
-                <p className="text-gray-900">{formatDate({dateString: facility.updatedAt, showTime: true, region: 'vi-VN'})}</p>
-                </div>
-            </div>
-            </div>
-
-            {/* Classes Section */}
-            <div>
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">Danh sách lớp học ({facility.classes.length})</h3>
-                <button 
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-                    onClick={() => {
-                        setSelectedClass({
-                          classId: null,
-                          name: "",
-                          description: "",
-                          daysOfWeek: "",
-                          startHour: "06:00",
-                          endHour: "07:30",
-                          isActive: true,
-                          studentCount: 0,
-                        });
-                        setView('class');
-                    }}
-                >
-                <Plus className="w-4 h-4" />
-                Thêm lớp mới
-                </button>
-            </div>
-
-            {facility.classes.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <p className="text-gray-500">Chưa có lớp học nào</p>
-                <p className="text-gray-400 text-sm mt-1">Nhấn "Thêm lớp mới" để tạo lớp học đầu tiên</p>
-                </div>
-            ) : (
-                <div className="space-y-3">
-                {facility.classes.map(cls => (
-                    <div key={cls.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border border-gray-200">
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">{cls.name}</h4>
-                        <div className="flex items-center gap-6 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
-                            <span>{formatDays(cls.daysOfWeek)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-gray-400" />
-                            <span>{formatTime(cls.startHour)} - {formatTime(cls.endHour)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-gray-400" />
-                            <span>Sĩ số: <strong>{cls.studentCount}</strong></span>
-                            </div>
-                        </div>
-                        </div>
-                        <button 
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            onClick={() => {
-                                setView('class');
-                                setSelectedClass(cls);
-                            }}
-                        >
-                            <Edit className="w-5 h-5" />
-                        </button>
-                    </div>
-                    </div>
-                ))}
-                </div>
-            )}
-            </div>
-        </div>
-        </div>
-    </div>
-    );
 
     return (
       <>
@@ -783,7 +493,12 @@ const FacilityManagement = () => {
 
                 <div className="space-y-4">
                   {filteredFacilities.map((facility) => (
-                    <FacilityCard key={facility.id} facility={facility} />
+                    <FacilityCard 
+                      key={facility.id} 
+                      facility={facility} 
+                      setSelectedFacility={setSelectedFacility}
+                      setView={setView}
+                    />
                   ))}
                 </div>
 
@@ -794,7 +509,12 @@ const FacilityManagement = () => {
                 )}
               </>
             ) : view === "detail" ? (
-              <FacilityDetail facility={selectedFacility} />
+              <FacilityDetail 
+                facility={selectedFacility} 
+                setSelectedClass={setSelectedClass}
+                setSelectedFacility={setSelectedFacility}
+                setView={setView}
+              />
             ) : view === "class" ? (
               <ClassDetailPage
                 classDetail={selectedClass}

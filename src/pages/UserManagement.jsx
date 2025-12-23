@@ -1,7 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { Search, Plus, Edit2, Save, X, Users } from "lucide-react";
-import { useFacilityMember } from "../hooks/useFacilityMembers";
+import { useEffect, useState } from "react";
+import { Search, Plus, Edit2, Save, X, Users, ChevronRight, ChevronLeft, Trash2, Edit, Power } from "lucide-react";
+import { useFacilityMember, useFacilityMemberBySearch } from "../hooks/useFacilityMembers";
 import { ThreeDotLoader } from "../components/ActionFallback";
+import { userService } from "../services/user_api";
+import { useFacility } from "../hooks/useFacilityData";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import AnnouncementUI from "../components/Announcement";
 
 // Belt level mapping
 const BELT_LEVELS = {
@@ -35,77 +40,6 @@ const ROLES = {
   4: "Võ sinh",
 };
 
-// Mock data
-const mockFacilities = [
-  { id: null, name: "Không cơ sở" },
-  { id: 1, name: "Cơ sở 1 - Quận 1" },
-  { id: 2, name: "Cơ sở 2 - Quận 2" },
-  { id: 3, name: "Cơ sở 3 - Quận 3" },
-];
-
-const mockUsers = [
-  {
-    id: "u001",
-    name: "Nguyễn Văn A",
-    phoneNumber: "0912345678",
-    dateOfBirth: "1990-01-15",
-    email: "a@example.com",
-    password: "password123",
-    isActive: true,
-    role: 2,
-    beltLevel: "T8",
-    facilityId: 1,
-  },
-  {
-    id: "u002",
-    name: "Trần Thị B",
-    phoneNumber: "0987654321",
-    dateOfBirth: "1985-05-20",
-    email: "b@example.com",
-    password: "password123",
-    isActive: true,
-    role: 3,
-    beltLevel: "1D",
-    facilityId: 2,
-  },
-  {
-    id: "u006",
-    name: "Hoàng Văn F",
-    phoneNumber: "0934567890",
-    dateOfBirth: "2005-03-25",
-    email: "f@example.com",
-    password: "password123",
-    isActive: true,
-    role: 4,
-    beltLevel: "V7",
-    facilityId: 1,
-  },
-  {
-    id: "USER001",
-    name: "Nguyễn Văn A",
-    phoneNumber: "0901234567",
-    dateOfBirth: "1990-01-15",
-    email: "a@example.com",
-    password: "password123",
-    isActive: true,
-    role: 1,
-    beltLevel: null,
-    facilityId: null,
-  },
-  {
-    id: "USER005",
-    name: "Hoàng Văn E",
-    phoneNumber: "0945678901",
-    dateOfBirth: "2008-11-30",
-    email: "e@example.com",
-    password: "password123",
-    isActive: false,
-    role: 4,
-    beltLevel: "T8",
-    facilityId: 2,
-  },
-];
-
 // Validation functions
 const validatePhone = (phone) => /^\d{10}$/.test(phone);
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -118,10 +52,11 @@ const UserRow = ({
   onSave,
   onCancel,
   onToggleActive,
+  onDelete,
   isEditing,
   editData,
   onEditChange,
-  currentUserRole,
+  facilities
 }) => {
   const [errors, setErrors] = useState({});
 
@@ -302,7 +237,7 @@ const UserRow = ({
                     }
                     className="w-full px-3 py-2 border rounded-md"
                   >
-                    {mockFacilities.map((facility) => (
+                    {facilities.map((facility) => (
                       <option
                         key={facility.id || "none"}
                         value={facility.id || ""}
@@ -357,10 +292,10 @@ const UserRow = ({
   }
 
   return (
-    <div className="bg-white border rounded-lg p-4 mb-3 hover:shadow-md transition-shadow">
+    <div className="bg-white border border-blue-100 rounded-lg p-4 mb-3 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-4">
         {/* Avatar */}
-        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
           <span className="text-blue-600 font-semibold text-xl">
             {getInitials(user.name)}
           </span>
@@ -369,7 +304,7 @@ const UserRow = ({
         {/* User Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-lg text-gray-900">{user.name}</h3>
+            <h3 className="font-semibold text-md text-gray-900">{user.name}</h3>
             <span className="text-gray-500 text-sm">({user.id})</span>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
@@ -406,40 +341,14 @@ const UserRow = ({
             }`}
             title={user.isActive ? "Đang hoạt động" : "Đã ngưng hoạt động"}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-              <line x1="12" y1="2" x2="12" y2="12"></line>
-            </svg>
+            <Power size={20} />
           </button>
           <button
-            onClick={() => onToggleActive(user.id)}
+            onClick={() => onDelete(user.id)}
             className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
             title="Xóa"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
+            <Trash2 size={20} />
           </button>
         </div>
       </div>
@@ -631,6 +540,7 @@ const RoleSection = ({
   onSave, 
   onCancel, 
   onToggleActive, 
+  onDelete,
   editingUserId, 
   editData, 
   onEditChange,
@@ -641,7 +551,7 @@ const RoleSection = ({
       <button className="w-full flex items-center justify-between mb-4 text-left">
         <div className="flex items-center gap-3">
           <Users size={20} className="text-blue-600" />
-          <h2 className="text-xl font-bold text-gray-800">
+          <h2 className="text-md font-bold text-gray-800">
             {ROLES[role]}{" "}
             <span className="text-gray-500">({users.length})</span>
           </h2>
@@ -656,6 +566,7 @@ const RoleSection = ({
             onSave={onSave}
             onCancel={onCancel}
             onToggleActive={onToggleActive}
+            onDelete={onDelete}
             isEditing={editingUserId === user.id}
             editData={editData}
             onEditChange={onEditChange}
@@ -667,109 +578,346 @@ const RoleSection = ({
   );
 };
 
-// Main Component
-export default function UserManagement() {
-  const [currentUserRole] = useState(0); // 0: Club Head, 1: Manager
-  const [selectedFacility, setSelectedFacility] = useState(null);
-  const [activeTab, setActiveTab] = useState("active");
-  const [searchTerm, setSearchTerm] = useState("");
-  const { data: usersData } = useFacilityMember(selectedFacility);
-  const [users, setUsers] = useState([]);
-  const [editingUserId, setEditingUserId] = useState(null);
-  const [editData, setEditData] = useState(null);
-  const [showManagerModal, setShowManagerModal] = useState(false);
-
-  const [inProgress, setInProgress] = useState("");
-  const [showError, setShowError] = useState("");
-  const [showSuccess, setShowSuccess] = useState("");
-
-  const filteredUsers = users.filter((user) => {
-    // Filter by facility
-    if (selectedFacility === null) return false;
-    if (selectedFacility === "none") {
-      if (user.facilityId !== null) return false;
+// Pagination Component
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
     } else {
-      if (user.facilityId !== selectedFacility) return false;
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
     }
-
-    // Filter by role based on current user role
-    if (currentUserRole === 1 && user.role <= 1) return false;
-
-    // Filter by active status
-    if (activeTab === "active" && !user.isActive) return false;
-    if (activeTab === "inactive" && user.isActive) return false;
-
-    // Filter by search term
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      return (
-        user.id.toLowerCase().includes(term) ||
-        user.name.toLowerCase().includes(term)
-      );
-    }
-
-    return true;
-  });
-
-  const groupedUsers = filteredUsers.reduce((acc, user) => {
-    const role = user.role;
-    if (!acc[role]) acc[role] = [];
-    acc[role].push(user);
-    return acc;
-  }, {});
-
-  const handleEdit = (user) => {
-    setEditingUserId(user.id);
-    setEditData({ ...user });
+    
+    return pages;
   };
 
-  const handleSave = () => {
-    setUsers(users.map((u) => (u.id === editData.id ? editData : u)));
-    setEditingUserId(null);
-    setEditData(null);
-  };
+  return (
+    <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-6">
+      <div className="flex flex-1 justify-between sm:hidden">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Trước
+        </button>
+        <div className="flex items-center">
+          <span className="text-sm text-gray-700">
+            Trang <span className="font-medium">{currentPage}</span> / <span className="font-medium">{totalPages}</span>
+          </span>
+        </div>
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Sau
+        </button>
+      </div>
+      
+      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm text-gray-700">
+            Trang <span className="font-medium">{currentPage}</span> / <span className="font-medium">{totalPages}</span>
+          </p>
+        </div>
+        <div>
+          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            
+            {getPageNumbers().map((page, index) => (
+              page === '...' ? (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300"
+                >
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={page}
+                  onClick={() => onPageChange(page)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
+                    currentPage === page
+                      ? 'z-10 bg-blue-600 text-white hover:bg-blue-500 ring-blue-600'
+                      : 'text-gray-900'
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            ))}
+            
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-  const handleCancel = () => {
-    setEditingUserId(null);
-    setEditData(null);
-  };
+// Updated UserManagement Component with Pagination
+export default function UserManagement() {
+    const [currentUserRole] = useState(0);
+    const [selectedFacility, setSelectedFacility] = useState(null);
+    const { data: facilities } = useFacility();
+    const [isActive, setIsActive] = useState(true);
+    const [startSearching, setStartSearching] = useState(false);
+    const [showSearchedData, setShowSearchedData] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [searchKey, setSearchKey] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(10);
+    const queryClient = useQueryClient();
+    
+    const { data: usersData } = useFacilityMember({
+        facilityId: selectedFacility,
+        page: currentPage - 1, // API uses 0-based indexing
+        size: pageSize,
+        isActive: isActive
+    });
+    const { data: searchData } = useFacilityMemberBySearch({
+        facilityId: selectedFacility,
+        searchKey: searchKey,
+        page: currentPage - 1, // API uses 0-based indexing
+        size: pageSize,
+        isActive: isActive,
+        allowSearch: startSearching
+    });
+    
+    
+    const [users, setUsers] = useState([]);
+    const [totalPages, setTotalPages] = useState(0);
+    const [editingUserId, setEditingUserId] = useState(null);
+    const [editData, setEditData] = useState(null);
+    const [showManagerModal, setShowManagerModal] = useState(false);
 
-  const handleEditChange = (field, value) => {
-    setEditData({ ...editData, [field]: value });
-  };
+    const [inProgress, setInProgress] = useState("");
+    const [showError, setShowError] = useState("");
+    const [showSuccess, setShowSuccess] = useState("");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState("");
+    const [showToggleStatusConfirm, setShowToggleStatusConfirm] = useState("");
+    // Filter logic remains the same
+    const filteredUsers = users.filter((user) => {
+        if (selectedFacility === null) return false;
+        if (selectedFacility === "none") {
+        if (user.facilityId !== null) return false;
+        } else {
+        if (user.facilityId !== selectedFacility) return false;
+        }
 
-  const handleToggleActive = (userId) => {
-    setUsers(
-      users.map((u) => (u.id === userId ? { ...u, isActive: !u.isActive } : u))
-    );
-  };
+        // if (currentUserRole === 1 && user.role <= 1) return false;
 
-  const handleCreateManager = (managerData) => {
-    const newManager = {
-      id: `MGR${Date.now()}`,
-      ...managerData,
-      role: 1,
-      isActive: true,
-      beltLevel: null,
-      facilityId: null,
+        return true;
+    });
+
+    const groupedUsers = users.reduce((acc, user) => {
+        const role = user.role;
+        if (!acc[role]) acc[role] = [];
+        acc[role].push(user);
+        return acc;
+    }, {});
+
+    console.log(groupedUsers);
+    
+
+    const handlePageChange = (page) => {
+        if (page >= 1 && page <= totalPages) {
+        setCurrentPage(page);
+        }
     };
-    setUsers([...users, newManager]);
-    setShowManagerModal(false);
-  };
 
-  useEffect(() => {
-    if(usersData?.data) {
-        setInProgress("");
-        setUsers(usersData?.data);
+    const handleEdit = (user) => {
+        setEditingUserId(user.id);
+        setEditData({ ...user });
+    };
+
+    const handleSave = () => {
+        setUsers(users.map((u) => (u.id === editData.id ? editData : u)));
+        setEditingUserId(null);
+        setEditData(null);
+    };
+
+    const handleCancel = () => {
+        setEditingUserId(null);
+        setEditData(null);
+    };
+
+    const handleEditChange = (field, value) => {
+        setEditData({ ...editData, [field]: value });
+    };
+
+    const handleToggleActive = (userId) => {
+        setUsers(
+        users.map((u) => (u.id === userId ? { ...u, isActive: !u.isActive } : u))
+        );
+    };
+
+    const confirmDelete = (userId) => {
+        console.log(userId);
+        
+        setShowDeleteConfirm(userId);
     }
-    else if(selectedFacility) {
-        setInProgress("Đang tải dữ liệu")
+
+    const handleDeleteUser = async (userId) => {
+        try {
+            setInProgress("Đang xóa người dùng");
+            await userService.deleteUserById(userId);
+            setShowSuccess("Người dùng với ID là " + userId + "đã bị xóa ra khỏi hệ thống");
+            if(showSearchedData) {
+                console.log("hahaha123");
+                // DON"T CHANGE
+                queryClient.invalidateQueries({
+                  queryKey: [
+                    "facility",
+                    "members",
+                    "search",
+                    selectedFacility,
+                    searchKey,
+                    isActive,
+                    currentPage,
+                    pageSize,
+                  ],
+                  exact: true
+                });
+            }
+            else {
+                queryClient.invalidateQueries({
+                  queryKey: [
+                    "facility",
+                    "members",
+                    selectedFacility,
+                    isActive,
+                    currentPage,
+                    pageSize,
+                  ],
+                  exact: true,
+                });
+            }
+        }
+        catch(error) {
+            if(error?.response) {
+                setShowError("Đã xảy ra lỗi khi xóa người dùng: " + error.response.data);
+            }
+            else {
+                setShowError(error);
+            }
+        }
+        finally {
+            setInProgress("");
+            setShowDeleteConfirm("");
+        }
     }
-  }, [usersData, selectedFacility])
+
+    const handleCreateManager = async (managerData) => {
+        try {
+            setInProgress("Đang tạo quản lý");
+            const result = (await userService.createManager(managerData)).data;
+            setUsers([...users, result]);
+            setShowManagerModal(false);
+        } catch (error) {
+        if (error?.response) {
+            setShowError("Tạo quản lý thất bại. Lỗi: " + error.response.data);
+        } else {
+            setShowError(error);
+        }
+        } finally {
+            setInProgress("");
+        }
+    };
+
+    useEffect(() => {
+        if(facilities?.data) {
+            setInProgress("");
+        }
+        else {
+            setInProgress("Đang tải dữ liệu");
+        }
+        if(showSearchedData) {
+            if(searchData?.data) {
+                setInProgress("");
+                setUsers(searchData?.data.content);
+                setTotalPages(searchData?.data.page.totalPages);
+                setStartSearching(false);
+            }
+            else if(selectedFacility) {
+                setStartSearching(true);
+                setInProgress("Đang tải dữ liệu");
+            }
+        }
+        else {
+            if(usersData?.data) {
+                setInProgress("");
+                setUsers(usersData?.data.content);
+                setTotalPages(usersData?.data.page.totalPages);
+            } 
+            else if(selectedFacility){
+                setInProgress("Đang tải dữ liệu");
+            }
+        }
+    }, [usersData, facilities, searchData, showSearchedData, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+        setSearchKey("")
+        setSearchTerm("");
+    }, [selectedFacility, isActive])
+
+    useEffect(() => {
+        if (searchTerm.length === 0) {
+          setShowSearchedData(false);
+          setSearchKey("");
+        }
+    }, [searchTerm])
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {inProgress && <ThreeDotLoader message={inProgress} />}
+      {showDeleteConfirm &&
+        <ConfirmDialog
+            action="remove"
+            title="Xóa người dùng ra khỏi hệ thống"
+            askDetail="Bạn có muốn xóa người dùng này ra khỏi hệ thống ? Thao tác này sẽ không thể thu hồi !"
+            handleCancel={() => setShowDeleteConfirm("")} 
+            handleConfirm={() => handleDeleteUser(showDeleteConfirm)}
+        />
+      }
+      {showError && 
+        <AnnouncementUI
+            message={showError}
+            setVisible={setShowError}
+        />
+      }
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-6">
@@ -789,21 +937,32 @@ export default function UserManagement() {
                     ? null
                     : e.target.value === "none"
                     ? "none"
+                    : e.target.value === "all"
+                    ? "all"
                     : parseInt(e.target.value)
                 )
               }
-              className="w-full md:w-64 px-4 py-2 border rounded-md"
+              className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 cursor-pointer hover:border-gray-400 transition-colors"
             >
-              <option value="">-- Chọn cơ sở --</option>
-              {mockFacilities.map((facility) => (
-                <option
-                  key={facility.id || "none"}
-                  value={facility.id || "none"}
-                >
-                  {facility.name}
-                </option>
-              ))}
+              <option value="">Chọn cơ sở</option>
+              <option value={"all"}>Tất cả cơ sở</option>
+              <option value={"none"}>Không có cơ sở</option>
+              {facilities?.data &&
+                facilities.data.map((facility) => (
+                  <option key={facility.id} value={facility.id}>
+                    {facility.name}
+                  </option>
+                ))}
             </select>
+            {usersData?.data && (
+              <p className="mt-6">
+                <strong>
+                  Số lượng thành viên{" "}
+                  {isActive ? " còn hoạt động" : " ngưng hoạt động"}:{" "}
+                  {usersData.data.page.totalElements}
+                </strong>{" "}
+              </p>
+            )}
           </div>
 
           {selectedFacility !== null && (
@@ -819,7 +978,18 @@ export default function UserManagement() {
                     type="text"
                     placeholder="Tìm kiếm theo ID hoặc tên..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && searchTerm) {
+                        setSearchKey(searchTerm);
+                        setStartSearching(true);
+                        setShowSearchedData(true);
+                        setCurrentPage(1);
+                        setInProgress("Đang tìm kiếm");
+                      }
+                    }}
                     className="w-full pl-10 pr-4 py-2 border rounded-md"
                   />
                 </div>
@@ -834,13 +1004,18 @@ export default function UserManagement() {
                   </button>
                 )}
               </div>
+              {searchKey && (
+                <p className="my-6 italic">
+                  Kết quả tìm kiếm của từ khóa: <strong>{searchKey}</strong>
+                </p>
+              )}
 
               {/* Tabs */}
               <div className="flex gap-2 mb-6 border-b">
                 <button
-                  onClick={() => setActiveTab("active")}
+                  onClick={() => setIsActive(true)}
                   className={`px-6 py-3 font-medium transition-colors ${
-                    activeTab === "active"
+                    isActive
                       ? "text-blue-600 border-b-2 border-blue-600"
                       : "text-gray-600 hover:text-gray-800"
                   }`}
@@ -848,9 +1023,9 @@ export default function UserManagement() {
                   Hoạt Động
                 </button>
                 <button
-                  onClick={() => setActiveTab("inactive")}
+                  onClick={() => setIsActive(false)}
                   className={`px-6 py-3 font-medium transition-colors ${
-                    activeTab === "inactive"
+                    !isActive
                       ? "text-blue-600 border-b-2 border-blue-600"
                       : "text-gray-600 hover:text-gray-800"
                   }`}
@@ -865,25 +1040,37 @@ export default function UserManagement() {
                   Không tìm thấy người dùng
                 </div>
               ) : (
-                <div className="space-y-8">
-                  {Object.entries(groupedUsers)
-                    .sort(([a], [b]) => parseInt(a) - parseInt(b))
-                    .map(([role, roleUsers]) => (
-                      <RoleSection
-                        key={role}
-                        role={role}
-                        users={roleUsers}
-                        onEdit={handleEdit}
-                        onSave={handleSave}
-                        onCancel={handleCancel}
-                        onToggleActive={handleToggleActive}
-                        editingUserId={editingUserId}
-                        editData={editData}
-                        onEditChange={handleEditChange}
-                        currentUserRole={currentUserRole}
-                      />
-                    ))}
-                </div>
+                <>
+                  <div className="space-y-8">
+                    {Object.entries(groupedUsers)
+                      .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                      .map(([role, roleUsers]) => (
+                        <RoleSection
+                          key={role}
+                          role={role}
+                          users={roleUsers}
+                          onEdit={handleEdit}
+                          onSave={handleSave}
+                          onCancel={handleCancel}
+                          onToggleActive={handleToggleActive}
+                          onDelete={confirmDelete}
+                          editingUserId={editingUserId}
+                          editData={editData}
+                          onEditChange={handleEditChange}
+                          currentUserRole={currentUserRole}
+                        />
+                      ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  )}
+                </>
               )}
             </>
           )}
