@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, PackageOpen } from "lucide-react";
+import { Calendar } from "lucide-react";
 import DateRangeSelector from "../components/DateRangeSelector";
 import MultiTabLayout from "../components/LayoutPageMultiTab";
 import SessionStatisticsUI from "../features/statistics/session/components/SessionStatisticsManagement.jsx";
@@ -48,21 +48,7 @@ const StatisticsManagement = () => {
       ),
       icon: Calendar,
       label: "Buổi học",
-    },
-    equipment: {
-      component: (
-        <SessionStatisticsUI
-          setIsChildComponent={setIsChildComponent}
-          startDate={startDate}
-          endDate={endDate}
-          facilityMap={facilityMap}
-          classMap={classMap}
-          selectedFacility={selectedFacility}
-        />
-      ),
-      icon: PackageOpen,
-      label: "Thiết bị",
-    },
+    }
   };
   return (
     <div className="mx-auto max-w-7xl">

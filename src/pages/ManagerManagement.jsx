@@ -5,14 +5,10 @@ import { userService } from "../services/user_api";
 import SuccessAnnouncement from "../components/SuccessAnnouncement";
 import AnnouncementUI from "../components/Announcement";
 import { ThreeDotLoader } from "../components/ActionFallback";
-
-// Custom hook for managers
-const useManagers = ({ isActive }) =>
-  useQuery({
-    queryKey: ["managers", "management", isActive],
-    queryFn: () => userService.getAllManagers(isActive),
-    staleTime: 60000 * 5,
-  });
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { useManagers } from "../hooks/useManagers";
+import { LoadingErrorUI } from "../components/LoadingError";
+import ManagerModal from "../features/manager-management/components/ManagerModal";
 
 // Validation utilities
 const validatePhone = (phone) => /^\d{10}$/.test(phone);
@@ -354,11 +350,11 @@ const ManagerManagement = () => {
   const [showError, setShowError] = useState("");
   const [inProgress, setInProgress] = useState("");
   const [showSuccess, setShowSuccess] = useState("");
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState("");
+  const [deletedUser, setDeletedUser] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const queryClient = useQueryClient();
-  const { data, isLoading, isError, error } = useManagers({ isActive });
+  const { data, isLoading, isError, error, refetch } = useManagers({ isActive });
 
   const updateManagerMutation = useMutation({
     mutationFn: userService.updateManager,
@@ -366,14 +362,17 @@ const ManagerManagement = () => {
       setInProgress("Đang cập nhật thông tin quản lý...");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["managers", "management"]);
+      queryClient.invalidateQueries(["managers"]);
       setShowSuccess("Cập nhật thành công thông tin quản lý");
       setInProgress("");
       setEditingManager(null);
     },
     onError: (error) => {
       setInProgress("");
-      setShowError("Xảy ra lỗi khi cập nhật người dùng: " + error.message);
+      if (error?.response) {
+        setShowError("Xảy ra lỗi khi cập nhật người dùng: " + error.response.data);
+      }
+      
     },
   });
 
@@ -385,14 +384,69 @@ const ManagerManagement = () => {
     updateManagerMutation.mutate(formData);
   };
 
-  const handleTogglePower = (manager) => {
+  const handleDeleteSubmit = async (managerId) => {
+    try {
+      await userService.deleteUserById(managerId);
+      queryClient.invalidateQueries(["managers"]);
+      setShowSuccess("Xóa thành công quản lý");
+    }
+    catch(error) {
+      if (error?.response) {
+        setShowError("Xảy ra lỗi khi xóa quản lý " + error.response.data);
+      }
+    }
+    finally {
+      setDeletedUser("");
+      setInProgress("");
+    }
+  };
+
+  const handleCreateSubmit = async (formData) => {
+    try {
+      const managerData = {
+        name: formData.name,
+        phoneNumber: formData.phoneNumber,
+        dateOfBirth: formData.dateOfBirth,
+        email: formData.email,
+        password: formData.password,
+        avatar: formData.avatar,
+      }
+      await userService.createManager(managerData);
+      setIsCreateModalOpen(false);
+      queryClient.invalidateQueries(["managers"]);
+      setShowSuccess("Tạo thành công quản lý");
+    }
+    catch(error) {
+      if (error?.response) {
+        setShowError("Xảy ra lỗi khi tạo quản lý " + error.response.data);
+      }
+    }
+    finally {
+      setInProgress("");
+    }
+  };
+
+  const handleTogglePower = async (manager) => {
     // Logic will be implemented later
-    console.log("Toggle power for manager:", manager.id);
+    try {
+      await userService.updateUserActiveStatus(manager.id, !isActive);
+      queryClient.invalidateQueries(["managers"]);
+      setShowSuccess("Chuyển trạng thái quản lý thành công");
+    }
+    catch(error) {
+      console.log(error);
+      if (error?.response) {
+        setShowError(error.response.data);
+      }
+    }
+    finally {
+      setInProgress("");
+    }
   };
 
   const handleDelete = (manager) => {
     // Logic will be implemented later
-    console.log("Delete manager:", manager.id);
+    setDeletedUser(manager.id);
   };
 
   const handleCreateManager = () => {
@@ -403,23 +457,18 @@ const ManagerManagement = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải dữ liệu...</p>
-        </div>
-      </div>
+      <ThreeDotLoader
+        message="Đang tải dữ liệu"
+      />
     );
   }
 
   if (isError) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center text-red-600">
-          <p className="text-xl font-semibold mb-2">Lỗi tải dữ liệu</p>
-          <p>{error?.message || "Đã xảy ra lỗi"}</p>
-        </div>
-      </div>
+      <LoadingErrorUI
+        errorMessage={"Lỗi tải dữ liệu quản lý"}
+        refetchData={refetch}
+      />
     );
   }
 
@@ -428,15 +477,22 @@ const ManagerManagement = () => {
   return (
     <>
       {inProgress && <ThreeDotLoader message={inProgress} />}
-      {/* {showDeleteConfirm && (
+      {isCreateModalOpen && 
+        <ManagerModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={handleCreateSubmit}
+        />
+      }
+      {deletedUser && (
         <ConfirmDialog
           action="remove"
           title="Xóa người dùng ra khỏi hệ thống"
           askDetail="Bạn có muốn xóa người dùng này ra khỏi hệ thống ? Thao tác này sẽ không thể thu hồi !"
-          handleCancel={() => setShowDeleteConfirm("")}
-          handleConfirm={() => handleDeleteUser(showDeleteConfirm)}
+          handleCancel={() => setDeletedUser("")}
+          handleConfirm={() => handleDeleteSubmit(deletedUser)}
         />
-      )} */}
+      )}
       {showError && (
         <AnnouncementUI message={showError} setVisible={setShowError} />
       )}

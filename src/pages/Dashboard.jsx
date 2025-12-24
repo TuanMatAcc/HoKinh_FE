@@ -36,7 +36,6 @@ export function DashboardPage() {
   });
 
   const menuItems = [
-    { id: "website", icon: Home, label: "Quản Lý Website", path: "website" },
     { id: "branches", icon: MapPin, label: "Cơ Sở", path: "co_so" },
     { id: "members", icon: Users, label: "Thành Viên", path: "nguoi_dung" },
     { id: "sessions", icon: Calendar, label: "Buổi học", path: "buoi_hoc" },
@@ -55,6 +54,12 @@ export function DashboardPage() {
       icon: PersonStanding,
       label: "Quản lý",
       path: "quan_ly",
+    });
+    menuItems.push({
+      id: "website",
+      icon: Home,
+      label: "Quản Lý Website",
+      path: "website",
     });
   }
 
