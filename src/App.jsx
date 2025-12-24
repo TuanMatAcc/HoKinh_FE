@@ -9,7 +9,6 @@ import WebsiteManagement from "@/pages/WebsiteManagement.jsx";
 import FacilityManagement from "@/pages/FacilityManagement.jsx";
 import EquipmentManagement from "@/pages/EquipmentManagement.jsx";
 import SessionManagement from "@/pages/SessionManagement.jsx";
-import InteractiveMap from "./features/map/components/Map";
 import InstructorSessionUI from "./pages/Instructor/Schedule";
 import StatisticsManagement from "./pages/StatisticsManagement";
 import SessionStatisticsInstructor from "./pages/Instructor/SessionStatisticsManagementForInstructor";
@@ -41,10 +40,6 @@ function App() {
         {
           path: "/article/:id",
           element: <ArticlePage />,
-        },
-        {
-          path: "/map",
-          element: <InteractiveMap />,
         },
         {
           path: "/dashboard",
