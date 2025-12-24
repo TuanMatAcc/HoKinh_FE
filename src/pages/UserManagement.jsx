@@ -7,6 +7,7 @@ import { useFacility } from "../hooks/useFacilityData";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import AnnouncementUI from "../components/Announcement";
+import SuccessAnnouncement from "../components/SuccessAnnouncement";
 
 // Belt level mapping
 const BELT_LEVELS = {
@@ -784,10 +785,9 @@ export default function UserManagement() {
     };
 
     const confirmDelete = (userId) => {
-        console.log(userId);
-        
         setShowDeleteConfirm(userId);
     }
+    console.log(usersData?.data);
 
     const handleDeleteUser = async (userId) => {
         try {
@@ -795,8 +795,21 @@ export default function UserManagement() {
             await userService.deleteUserById(userId);
             setShowSuccess("Người dùng với ID là " + userId + "đã bị xóa ra khỏi hệ thống");
             if(showSearchedData) {
-                console.log("hahaha123");
-                // DON"T CHANGE
+                console.log(
+                  queryClient.getQueryData([
+                    "facility",
+                    "members",
+                    "search",
+                    selectedFacility,
+                    searchKey,
+                    isActive,
+                    currentPage - 1,
+                    pageSize
+                  ])
+                );
+                console.log("wtf");
+                
+                
                 queryClient.invalidateQueries({
                   queryKey: [
                     "facility",
@@ -805,20 +818,35 @@ export default function UserManagement() {
                     selectedFacility,
                     searchKey,
                     isActive,
-                    currentPage,
+                    currentPage - 1,
                     pageSize,
                   ],
-                  exact: true
+                  exact: true,
                 });
+                console.log(
+                  queryClient.getQueryData([
+                    "facility",
+                    "members",
+                    "search",
+                    selectedFacility,
+                    searchKey,
+                    isActive,
+                    currentPage - 1,
+                    pageSize,
+                  ])
+                );
+                console.log("end");
+                
             }
             else {
+                console.log("12333");
                 queryClient.invalidateQueries({
                   queryKey: [
                     "facility",
                     "members",
                     selectedFacility,
                     isActive,
-                    currentPage,
+                    currentPage-1,
                     pageSize,
                   ],
                   exact: true,
@@ -830,7 +858,7 @@ export default function UserManagement() {
                 setShowError("Đã xảy ra lỗi khi xóa người dùng: " + error.response.data);
             }
             else {
-                setShowError(error);
+                setShowError(error.errorMessage);
             }
         }
         finally {
@@ -917,6 +945,13 @@ export default function UserManagement() {
             message={showError}
             setVisible={setShowError}
         />
+      }
+      {showSuccess && 
+      <SuccessAnnouncement
+        actionAnnouncement="Thao tác thực hiện thành công"
+        detailAnnouncement={showSuccess}
+        onBack={() => setShowSuccess("")}
+      />
       }
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">

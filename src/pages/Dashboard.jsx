@@ -10,6 +10,8 @@ import {
   PackageOpen,
   Settings,
   ChevronDown,
+  PersonStanding,
+  ChartArea,
 } from "lucide-react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
@@ -44,8 +46,17 @@ export function DashboardPage() {
       label: "Thiết bị",
       path: "thiet_bi",
     },
-    { id: "statistics", icon: Calendar, label: "Thống kê", path: "thong_ke" },
+    { id: "statistics", icon: ChartArea, label: "Thống kê", path: "thong_ke" },
+    
   ];
+  if(user.role === 0) {
+    menuItems.push({
+      id: "manager",
+      icon: PersonStanding,
+      label: "Quản lý",
+      path: "quan_ly",
+    });
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {

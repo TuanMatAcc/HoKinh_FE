@@ -48,6 +48,7 @@ export const userService = {
   createManager: (managerData) => api.post('/api/user/admin/create-manager', managerData),
   deleteUserById: (deleteUserId) => api.delete('/api/user/admin/delete-user-by-id', {params: {deleteUserId}}),
   updateUser: (updatedUserDTO) => api.put('/api/user/admin/update-user', updatedUserDTO),
-  updateUser: (userId, active) => api.put('/api/user/admin/update-user-active-status', null, {params: {userId, active}}),
-
+  updateUserActiveStatus: (userId, active) => api.put('/api/user/admin/update-user-active-status', null, {params: {userId, active}}),
+  updateManager: (managerInfo) => api.put('/api/user/admin/update-manager', managerInfo),
+  getAllManagers: (isActive) => api.get('/api/user/admin/get-all-managers', {params: {isActive}}),
 }

@@ -20,10 +20,18 @@ export function Homepage() {
   const achievementSectionRef = useRef(null);
   const eventSectionRef = useRef(null);
   const informationSectionRef = useRef(null);
-
+  const [user] = useState({
+      ...JSON.parse(
+        localStorage.getItem("userInfo")
+          && localStorage.getItem("userInfo")
+      ),
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+    });
+    console.log(user);
+    
   return (
     <>
-      <StickyNavbar />
+      <StickyNavbar role={user.role}/>
       <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-red-50">
         {/* Hero Section */}
         <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
@@ -125,113 +133,6 @@ export function Homepage() {
   );
 }
 
-
-
-function OrcaAnimation({sectionRef}) {
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  
-  useEffect(() => {
-    // Get dimensions only once on mount and resize
-    const updateDimensions = () => {
-      if (sectionRef.current) {
-        const rect = sectionRef.current.getBoundingClientRect();
-        setDimensions({ width: rect.width, height: rect.height });
-      }
-    };
-
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, [sectionRef]);
-
-  useEffect(() => {
-    let rafId = null;
-
-    const handleScroll = () => {
-      if (rafId) return;
-      
-      rafId = requestAnimationFrame(() => {
-        if (!sectionRef.current) return;
-        
-        const rect = sectionRef.current.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        const sectionTop = rect.top;
-        const sectionHeight = rect.height;
-        
-        let progress = 0;
-        if (sectionTop < windowHeight && sectionTop > -sectionHeight) {
-          const distanceFromBottom = windowHeight - sectionTop;
-          const totalScrollDistance = windowHeight + sectionHeight;
-          progress = Math.min(Math.max(distanceFromBottom / totalScrollDistance, 0), 1);
-        }
-        
-        setScrollProgress(progress);
-        rafId = null;
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-  }, [sectionRef]);
-  
-  const leftImageAnimation = useSpring({
-    x: -dimensions.width/2 + (scrollProgress * dimensions.width/2),
-    y: -(scrollProgress * dimensions.height),
-    opacity: scrollProgress > 0.3 ? 0.8 : scrollProgress, 
-    rotate: -45 + (scrollProgress * 45),
-    config: { tension: 120, friction: 30 }
-  });
-  
-  const rightImageAnimation = useSpring({
-    x: dimensions.width/2 - (scrollProgress * dimensions.width/2),
-    y: -(scrollProgress * dimensions.height),
-    opacity: scrollProgress > 0.3 ? 0.8 : scrollProgress, 
-    rotate: 45 - (scrollProgress * 45),
-    config: { tension: 120, friction: 30 }
-  });
-  
-  return (
-    <>
-      { scrollProgress !== 0 &&
-        (<div className='z-0'>
-          {/* Left Orca - ABSOLUTE positioning with -z-10 */}
-          <animated.div
-            style={{
-              transform: leftImageAnimation.x.to((x) =>
-                `translate(${x}px, ${leftImageAnimation.y.get()}px) rotate(${leftImageAnimation.rotate.get()}deg) scaleX(-1)`
-              ),
-              opacity: leftImageAnimation.opacity
-            }}
-            className="absolute top-1/2 left-1/4"
-          >
-            <img src="/orca_up.svg" alt="" className="w-120 h-120" />
-          </animated.div>
-          
-          {/* Right Orca - ABSOLUTE positioning with -z-10 */}
-          <animated.div
-            style={{
-              transform: rightImageAnimation.x.to((x) =>
-                `translate(${x}px, ${rightImageAnimation.y.get()}px) rotate(${rightImageAnimation.rotate.get()}deg)`
-              ),
-              opacity: rightImageAnimation.opacity
-            }}
-            className="absolute top-1/2 right-1/4"
-          >
-            <img src="/orca_up.svg" alt="" className="w-120 h-120" />
-          </animated.div>
-        </div>)
-      }
-    </>
-  );
-}
-
 function OrcaBackground() {
   return (
     <div className='absolute inset-0 flex items-center justify-center pointer-events-none -z-10'>
@@ -291,7 +192,7 @@ function SwimmingOrcaBackground() {
 }
 
 
-function StickyNavbar() {
+function StickyNavbar({role}) {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
@@ -320,7 +221,7 @@ function StickyNavbar() {
             <NavLink href="#achievement" text="Thành tích" />
             <NavLink href="#event" text="Sự kiện" />
             <NavLink href="#contact" text="Liên hệ" />
-            <LoginButton />
+            <LoginButton role={role}/>
           </div>
 
           {/* Mobile menu button */}
@@ -367,13 +268,13 @@ function NavLink({ href, text }) {
   );
 }
 
-function LoginButton() {
+function LoginButton({role}) {
   return (
     <a
       href="/login"
       className="ml-4 px-6 py-2.5 bg-linear-to-r from-red-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-xl hover:scale-105 transition-all duration-200 shadow-lg"
     >
-      Đăng nhập
+      {!role ? "Đăng nhập" : "Vào câu lạc bộ"}
     </a>
   );
 }

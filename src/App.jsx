@@ -1,4 +1,5 @@
 import "@/App.css";
+import "react-toastify/dist/ReactToastify.css";
 import { Homepage } from "@/pages/Homepage.jsx";
 import { LoginPage } from "@/pages/LoginPage.jsx";
 import { ArticlePage } from "@/features/article/components/article-display.jsx";
@@ -16,6 +17,10 @@ import InstructorDashboardPage from "./pages/Instructor/InstructorDashboard";
 import StudentSchedule from "./pages/Student/ScheduleForStudent";
 import StudentDashboardPage from "./pages/Student/StudentDashboard";
 import UserManagement from "./pages/UserManagement";
+import ManagerManagement from "./pages/ManagerManagement";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute";
+import { ToastContainer } from 'react-toastify'; 
 
 function App() {
   const router = createBrowserRouter([
@@ -29,7 +34,9 @@ function App() {
         // other pages....
         {
           path: "/login",
-          element: <LoginPage />,
+          element: <PublicRoute>
+            <LoginPage/>
+          </PublicRoute>,
         },
         {
           path: "/article/:id",
@@ -41,7 +48,11 @@ function App() {
         },
         {
           path: "/dashboard",
-          element: <DashboardPage />,
+          element: (
+            <ProtectedRoute allowedRoles={[0, 1]}>
+              <DashboardPage />
+            </ProtectedRoute>
+          ),
           children: [
             {
               path: "website", // results in /dashboard/website
@@ -67,11 +78,19 @@ function App() {
               path: "thong_ke",
               element: <StatisticsManagement />,
             },
+            {
+              path: "quan_ly",
+              element: <ManagerManagement />,
+            },
           ],
         },
         {
           path: "/huan_luyen_vien",
-          element: <InstructorDashboardPage />,
+          element: (
+            <ProtectedRoute allowedRoles={[2, 3]}>
+              <InstructorDashboardPage />
+            </ProtectedRoute>
+          ),
           children: [
             {
               path: "lich_day",
@@ -85,7 +104,11 @@ function App() {
         },
         {
           path: "/vo_sinh",
-          element: <StudentDashboardPage />,
+          element: (
+            <ProtectedRoute allowedRoles={[4]}>
+              <StudentDashboardPage />
+            </ProtectedRoute>
+          ),
           children: [
             {
               path: "lich_hoc",
@@ -97,14 +120,15 @@ function App() {
             },
           ],
         },
-        {
-          path: "/thong_ke_hlv",
-          element: <SessionStatisticsInstructor />,
-        },
       ],
     },
   ]);
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <ToastContainer />
+    </>
+  );
 }
 
 export default App;
