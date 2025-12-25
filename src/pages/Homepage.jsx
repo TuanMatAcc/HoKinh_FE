@@ -268,12 +268,13 @@ function NavLink({ href, text }) {
 }
 
 function LoginButton({role}) {
+  
   return (
     <a
       href="/login"
       className="ml-4 px-6 py-2.5 bg-linear-to-r from-red-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-xl hover:scale-105 transition-all duration-200 shadow-lg"
     >
-      {!role ? "Đăng nhập" : "Vào câu lạc bộ"}
+      {(role === null || role === undefined) ? "Đăng nhập" : "Vào câu lạc bộ"}
     </a>
   );
 }
@@ -955,7 +956,7 @@ function EventSection({sectionRef}) {
 function EventContent({itemsPerPage, data, currentPage, setCurrentPage}) {
 
   // Data Pagination
-  const currentEvents = Array.isArray(data.content) ? data.content : [];
+  const currentEvents = data.content;
   const totalPages = data.page.totalPages || 0;
   const startIndex = currentPage * itemsPerPage;
 
@@ -988,10 +989,11 @@ function EventContent({itemsPerPage, data, currentPage, setCurrentPage}) {
           )}
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {currentEvents.map((event, index) => {
+            {currentEvents ? currentEvents.map((event, index) => {
               event.content = generateHTMLFromJSON(event.content);
+              
               return <ArticleCard key={startIndex + index} article={event} />
-            })}
+            }) : <ArticleCardSkeleton/>}
           </div>
 
           {totalPages > 1 && currentPage < totalPages - 1 && (

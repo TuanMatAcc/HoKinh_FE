@@ -34,7 +34,7 @@ const CategoryManagement = ({ categories, onBack }) => {
     };
     setIsCreating(true);
     try {
-      const returnedData = await articleCategoryService.create(newCategory);
+      const returnedData = (await articleCategoryService.create(newCategory)).data;
       queryClient.setQueryData(['article_categories_management'], oldData => {
         if(!oldData) return oldData;
         return {
@@ -42,6 +42,8 @@ const CategoryManagement = ({ categories, onBack }) => {
           data: [returnedData, ...oldData.data]
         }
       });
+      console.log(queryClient.getQueryData(["article_categories_management"]));
+      
       setNewCategoryName('');
       setIsCreating(false);
       setInProgress(false);
@@ -88,7 +90,7 @@ const CategoryManagement = ({ categories, onBack }) => {
   const handleDeleteCategory = async () => {
       setInProgress(true);
       try {
-        const returnedData = await articleCategoryService.delete(editingCategory);
+        await articleCategoryService.delete(editingCategory);
       
         queryClient.setQueryData(['article_categories_management'], oldData => {
           if(!oldData) return oldData;
@@ -98,14 +100,15 @@ const CategoryManagement = ({ categories, onBack }) => {
           }
         });
         setEditingCategory(null);
-        setInProgress(false);
       }
       catch(error) {
-        setInProgress(false);
-        if(error.response) {
+        if(error?.response) {
           setShowError(true);
           errorMessage.current = "Xảy ra lỗi khi xóa danh mục. Chi tiết lỗi: " + error.response.data;
         }
+      }
+      finally {
+        setInProgress(false);
         setShowConfirmDialog(false);
       }
   };

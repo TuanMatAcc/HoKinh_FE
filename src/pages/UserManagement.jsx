@@ -547,19 +547,6 @@ export default function UserManagement() {
     const [showSuccess, setShowSuccess] = useState("");
     const [showDeleteConfirm, setShowDeleteConfirm] = useState("");
     const [showToggleStatusConfirm, setShowToggleStatusConfirm] = useState("");
-    // Filter logic remains the same
-    const filteredUsers = users.filter((user) => {
-        if (selectedFacility === null) return false;
-        if (selectedFacility === "none") {
-        if (user.facilityId !== null) return false;
-        } else {
-        if (user.facilityId !== selectedFacility) return false;
-        }
-
-        // if (currentUserRole === 1 && user.role <= 1) return false;
-
-        return true;
-    });
 
     const groupedUsers = users.reduce((acc, user) => {
         const role = user.role;
@@ -597,11 +584,71 @@ export default function UserManagement() {
         setEditData({ ...editData, [field]: value });
     };
 
-    const handleToggleActive = (userId) => {
-        setUsers(
-        users.map((u) => (u.id === userId ? { ...u, isActive: !u.isActive } : u))
-        );
+    const handleToggleActive = async (userId) => {
+        try {
+          setInProgress("Đang cập nhật trạng thái người dùng");
+          await userService.updateUserActiveStatus(userId, !isActive);
+          setShowSuccess(
+            isActive
+              ? "Người dùng với ID là " + userId + " đã bị khóa"
+              : "Người dùng với ID là " + userId + " đã được kích hoạt lại"
+          );
+          if (showSearchedData) {
+            queryClient.setQueryData([
+              "facility",
+              "members",
+              "search",
+              selectedFacility,
+              searchKey,
+              isActive,
+              currentPage - 1,
+              pageSize,
+            ], prev => {
+              if(!prev) return prev;
+              return {
+                ...prev,
+                data: {
+                  content: prev.data.content.filter(
+                    (user) => user.id !== showToggleStatusConfirm
+                  ),
+                  page: {
+                    ...prev.data.page,
+                    totalElements: prev.data.page.totalElements - 1,
+                  },
+                },
+              };
+            });
+          } else {
+            queryClient.invalidateQueries({
+              queryKey: [
+                "facility",
+                "members",
+                selectedFacility,
+                isActive,
+                currentPage - 1,
+                pageSize,
+              ],
+              exact: true,
+            });
+          }
+        } catch (error) {
+          if (error?.response) {
+            setShowError(
+              "Đã xảy ra lỗi khi cập nhật trạng thái người dùng: " +
+                error.response.data
+            );
+          } else {
+            setShowError(error.errorMessage);
+          }
+        } finally {
+          setInProgress("");
+          setShowToggleStatusConfirm("");
+        }
     };
+
+    const confirmToggleActive = (userId) => {
+        setShowToggleStatusConfirm(userId);
+    }
 
     const confirmDelete = (userId) => {
         setShowDeleteConfirm(userId);
@@ -614,51 +661,51 @@ export default function UserManagement() {
             await userService.deleteUserById(userId);
             setShowSuccess("Người dùng với ID là " + userId + "đã bị xóa ra khỏi hệ thống");
             if(showSearchedData) {
-                console.log(
-                  queryClient.getQueryData([
-                    "facility",
-                    "members",
-                    "search",
-                    selectedFacility,
-                    searchKey,
-                    isActive,
-                    currentPage - 1,
-                    pageSize
-                  ])
-                );
-                console.log("wtf");
-                
-                
-                queryClient.invalidateQueries({
-                  queryKey: [
-                    "facility",
-                    "members",
-                    "search",
-                    selectedFacility,
-                    searchKey,
-                    isActive,
-                    currentPage - 1,
-                    pageSize,
-                  ],
-                  exact: true,
-                });
-                console.log(
-                  queryClient.getQueryData([
-                    "facility",
-                    "members",
-                    "search",
-                    selectedFacility,
-                    searchKey,
-                    isActive,
-                    currentPage - 1,
-                    pageSize,
-                  ])
-                );
-                console.log("end");
-                
+              console.log("ruii");
+              
+              queryClient.setQueryData(
+                [
+                  "facility",
+                  "members",
+                  "search",
+                  selectedFacility,
+                  searchKey,
+                  isActive,
+                  currentPage - 1,
+                  pageSize,
+                ],
+                (prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    data: {
+                      content: prev.data.content.filter(
+                        (user) => user.id !== showDeleteConfirm
+                      ),
+                      page: {
+                        ...prev.data.page,
+                        totalElements: prev.data.page.totalElements - 1,
+                      },
+                    },
+                  };
+                }
+              );
+              console.log("reee");
+              console.log(
+                queryClient.getQueryData([
+                  "facility",
+                  "members",
+                  "search",
+                  selectedFacility,
+                  searchKey,
+                  isActive,
+                  currentPage - 1,
+                  pageSize,
+                ])
+              );
+              
             }
             else {
-                console.log("12333");
                 queryClient.invalidateQueries({
                   queryKey: [
                     "facility",
@@ -740,6 +787,18 @@ export default function UserManagement() {
           askDetail="Bạn có muốn xóa người dùng này ra khỏi hệ thống ? Thao tác này sẽ không thể thu hồi !"
           handleCancel={() => setShowDeleteConfirm("")}
           handleConfirm={() => handleDeleteUser(showDeleteConfirm)}
+        />
+      )}
+      {showToggleStatusConfirm && (
+        <ConfirmDialog
+          title="Thay đổi trạng thái hoạt động người dùng"
+          askDetail={
+            isActive
+              ? `Bạn chắc chắn về việc khóa tài khoản người dùng với ID ${showToggleStatusConfirm} ? Người dùng sẽ không thể sử dụng tài khoản sau khi bạn xác nhận`
+              : `Bạn chắc chắn về việc kích hoạt lại tài khoản người dùng với ID ${showToggleStatusConfirm} ? Sau khi kích hoạt người dùng có thể sử dụng tài khoản trên hệ thống`
+          }
+          handleCancel={() => setShowToggleStatusConfirm("")}
+          handleConfirm={() => handleToggleActive(showToggleStatusConfirm)}
         />
       )}
       {showError && (
@@ -835,7 +894,11 @@ export default function UserManagement() {
               )}
               {showSearchedData && searchData?.data && (
                 <p className="my-6">
-                  Có tổng cộng: <strong>{" " + searchData.data.page.totalElements + " "}</strong> kết quả 
+                  Có tổng cộng:{" "}
+                  <strong>
+                    {" " + searchData.data.page.totalElements + " "}
+                  </strong>{" "}
+                  kết quả
                 </p>
               )}
 
@@ -881,7 +944,7 @@ export default function UserManagement() {
                           onEdit={handleEdit}
                           onSave={handleSave}
                           onCancel={handleCancel}
-                          onToggleActive={handleToggleActive}
+                          onToggleActive={confirmToggleActive}
                           onDelete={confirmDelete}
                           editingUserId={editingUserId}
                           editData={editData}

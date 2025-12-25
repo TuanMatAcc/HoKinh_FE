@@ -18,7 +18,7 @@ export const useFacilityMember = ({facilityId, page, size, isActive}) => {
 })}
 
 export const useFacilityMemberBySearch = ({facilityId, searchKey, page, size, isActive, allowSearch}) => {
-    console.log(searchKey);
+    console.log(facilityId);
     
     let callAPI = () => userService.searchFacilityUsers(facilityId, searchKey, isActive, page, size);
     if(facilityId === 'none') {
