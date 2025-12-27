@@ -12,6 +12,7 @@ import {
   ChevronDown,
   PersonStanding,
   ChartArea,
+  Bot,
 } from "lucide-react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
@@ -61,7 +62,19 @@ export function DashboardPage() {
       label: "Quản Lý Website",
       path: "website",
     });
+    menuItems.push({
+      id: "bot",
+      icon: Bot,
+      label: "Huấn luyện AI",
+      path: "huan_luyen_AI",
+    });
   }
+  menuItems.push({
+    id: "account_setting",
+    icon: Settings,
+    label: "Cài đặt tài khoản",
+    path: "cai_dat_tai_khoan",
+  });
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -82,14 +95,6 @@ export function DashboardPage() {
     // TODO: Implement logout logic
     setAccountDropdownOpen(false);
   };
-
-  const handleSettings = () => {
-    console.log("Opening settings...");
-    // TODO: Navigate to settings page
-    setAccountDropdownOpen(false);
-  };
-
-  console.log(user.name);
   
   return (
     <div className="flex h-screen bg-linear-to-br from-gray-50 to-gray-100">
@@ -207,14 +212,6 @@ export function DashboardPage() {
                   </div>
 
                   <div className="py-2">
-                    <button
-                      onClick={handleSettings}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-                    >
-                      <Settings size={18} />
-                      <span>Cài đặt tài khoản</span>
-                    </button>
-
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"

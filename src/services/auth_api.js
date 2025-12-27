@@ -11,5 +11,35 @@ export const authService = {
     logout: () => {
         localStorage.removeItem("token");
         localStorage.removeItem("userInfo")
-    }
+    },
+    requestOTP: (email) => api.post(
+        `/api/auth/forgot-password/request-otp`,
+        {
+          email,
+        }
+    ),
+    verifyOtp: (email, otp) => api.post(
+        `/api/auth/forgot-password/verify-otp`,
+        {
+          email,
+          otp,
+        }
+    ),
+    resetPassword: (email, newPassword) => api.post(
+        `/api/auth/forgot-password/reset`,
+        {
+          email,
+          newPassword,
+        }
+    ),
+    changeFirstPassword: (oldPassword, newPassword) => api.post(
+        `/api/auth/change-first-password`,
+        {
+          oldPassword,
+          newPassword,
+        }
+    ),
+    logOutAll: () => api.post(
+        `/api/auth/logout-all`
+    ),
 }

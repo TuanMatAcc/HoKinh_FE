@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Edit2, Power, Trash2, Plus, X, Check, User } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Edit2, Power, Trash2, Plus, X, User } from "lucide-react";
 import { userService } from "../services/user_api";
 import SuccessAnnouncement from "../components/SuccessAnnouncement";
 import AnnouncementUI from "../components/Announcement";

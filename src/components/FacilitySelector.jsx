@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Calendar, ChevronDown } from "lucide-react";
+import { Building2, ChevronDown } from "lucide-react";
 
 const FacilitySelector = ({
   facilityMap,

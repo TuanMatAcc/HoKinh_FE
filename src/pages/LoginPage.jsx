@@ -252,20 +252,12 @@ export function LoginPage() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      disabled={authenticatingState === WAIT}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
-                    />
-                    <span className="ml-2 text-sm text-gray-600">
-                      Ghi nhớ đăng nhập
-                    </span>
-                  </label>
+                <div className="flex items-center justify-end">
                   <button
                     type="button"
-                    onClick={() => setShowForgotPassword(true)}
+                    onClick={() => {
+                      navigate("/quen_mat_khau");
+                    }}
                     disabled={authenticatingState === WAIT}
                     className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -376,20 +368,6 @@ export function LoginPage() {
                   </svg>
                   Quay lại đăng nhập
                 </button>
-              </div>
-            )}
-
-            {!showForgotPassword && (
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <p className="text-center text-gray-600 text-sm">
-                  Chưa có tài khoản?{" "}
-                  <a
-                    href="#"
-                    className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-                  >
-                    Liên hệ để đăng ký
-                  </a>
-                </p>
               </div>
             )}
           </div>

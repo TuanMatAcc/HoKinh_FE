@@ -20,6 +20,9 @@ import ManagerManagement from "./pages/ManagerManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import { ToastContainer } from 'react-toastify'; 
+import ForgotPassword from "./pages/ForgotPassword";
+import AccountSettings from "./pages/AccountSetting";
+import VectorStoreManager from "./pages/OrcaKnowTraining";
 
 function App() {
   const router = createBrowserRouter([
@@ -33,9 +36,19 @@ function App() {
         // other pages....
         {
           path: "/login",
-          element: <PublicRoute>
-            <LoginPage/>
-          </PublicRoute>,
+          element: (
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          ),
+        },
+        {
+          path: "quen_mat_khau",
+          element: (
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          ),
         },
         {
           path: "/article/:id",
@@ -77,6 +90,14 @@ function App() {
               path: "quan_ly",
               element: <ManagerManagement />,
             },
+            {
+              path: "cai_dat_tai_khoan",
+              element: <AccountSettings />,
+            },
+            {
+              path: "huan_luyen_AI",
+              element: <VectorStoreManager />,
+            },
           ],
         },
         {
@@ -95,6 +116,10 @@ function App() {
               path: "thong_ke",
               element: <SessionStatisticsInstructor />,
             },
+            {
+              path: "cai_dat_tai_khoan",
+              element: <AccountSettings />,
+            },
           ],
         },
         {
@@ -112,6 +137,10 @@ function App() {
             {
               path: "thong_ke",
               element: <SessionStatisticsInstructor />,
+            },
+            {
+              path: "cai_dat_tai_khoan",
+              element: <AccountSettings />,
             },
           ],
         },

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, Plus, Edit2, Save, X, Users, ChevronRight, ChevronLeft, Trash2, Edit, Power } from "lucide-react";
+import { Search, Plus, Edit2, Save, X, Users, ChevronRight, ChevronLeft, Trash2, Edit, Power, Building2 } from "lucide-react";
 import { useFacilityMember, useFacilityMemberBySearch } from "../hooks/useFacilityMembers";
 import { ThreeDotLoader } from "../components/ActionFallback";
 import { userService } from "../services/user_api";
@@ -8,38 +8,13 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import AnnouncementUI from "../components/Announcement";
 import SuccessAnnouncement from "../components/SuccessAnnouncement";
+import { ROLES, BELT_LEVELS } from "../data/mapUserFields";
+import Header from "../components/Header";
 
-// Belt level mapping
-const BELT_LEVELS = {
-  "1D": "Đai đen 1 đẳng",
-  "2D": "Đai đen 2 đẳng",
-  "3D": "Đai đen 3 đẳng",
-  "4D": "Đai đen 4 đẳng",
-  "5D": "Đai đen 5 đẳng",
-  "6D": "Đai đen 6 đẳng",
-  "7D": "Đai đen 7 đẳng",
-  "8D": "Đai đen 8 đẳng",
-  "9D": "Đai đen 9 đẳng",
-  "10D": "Đai đen 10 đẳng",
-  "ĐỎ 1": "Đai đỏ cấp 1",
-  "ĐỎ 2": "Đai đỏ cấp 2",
-  "ĐỎ 3": "Đai đỏ cấp 3",
-  "ĐỎ 4": "Đai đỏ cấp 4",
-  XD5: "Đai xanh dương cấp 5",
-  XL6: "Đai xanh lá cấp 6",
-  V7: "Đai vàng cấp 7",
-  T8: "Đai trắng cấp 8",
-  T9: "Đai trắng cấp 9",
-  T10: "Đai trắng cấp 10",
-};
-
-const ROLES = {
-  0: "Trưởng câu lạc bộ",
-  1: "Quản lý",
-  2: "Huấn luyện viên",
-  3: "Hướng dẫn viên",
-  4: "Võ sinh",
-};
+// Validation utilities
+const validatePhone = (phone) => /^\d{10}$/.test(phone);
+const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const validatePassword = (password) => password.length >= 8;
 
 // User Row Component
 const UserRow = ({
@@ -245,21 +220,23 @@ const UserRow = ({
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Vai trò
-                </label>
-                <select
-                  value={editData.role || 2}
-                  onChange={(e) =>
-                    onEditChange("role", parseInt(e.target.value))
-                  }
-                  className="w-full px-3 py-2 border rounded-md"
-                >
-                  <option value={2}>Huấn luyện viên</option>
-                  <option value={3}>Hướng dẫn viên</option>
-                </select>
-              </div>
+              {(user.role === 2 || user.role === 3) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Vai trò
+                  </label>
+                  <select
+                    value={editData.role || 2}
+                    onChange={(e) =>
+                      onEditChange("role", parseInt(e.target.value))
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  >
+                    <option value={2}>Huấn luyện viên</option>
+                    <option value={3}>Hướng dẫn viên</option>
+                  </select>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -310,7 +287,7 @@ const UserRow = ({
             </span>
             {user.beltLevel && (
               <span>
-                <span className="font-medium">Đai:</span> {user.beltLevel}
+                <span className="font-medium">Đai:</span> {BELT_LEVELS[user.beltLevel]}
               </span>
             )}
             <span>
@@ -365,7 +342,8 @@ const RoleSection = ({
   editingUserId, 
   editData, 
   onEditChange,
-  currentUserRole 
+  currentUserRole,
+  facilities 
 }) => {
   return (
     <div className="bg-gray-50 rounded-lg p-4">
@@ -391,6 +369,7 @@ const RoleSection = ({
             isEditing={editingUserId === user.id}
             editData={editData}
             onEditChange={onEditChange}
+            facilities={facilities}
             currentUserRole={currentUserRole}
           />
         ))}
@@ -569,10 +548,73 @@ export default function UserManagement() {
         setEditData({ ...user });
     };
 
-    const handleSave = () => {
-        setUsers(users.map((u) => (u.id === editData.id ? editData : u)));
-        setEditingUserId(null);
-        setEditData(null);
+    const handleSave = async () => {
+      try {
+        setInProgress("Đang cập nhật người dùng");
+        await userService.updateUser(editData);
+        setShowSuccess(`Người dùng với ID là ${editData.id} đã được cập nhật thành công`);
+        if (showSearchedData) {
+          queryClient.setQueryData([
+            "facility",
+            "members",
+            "search",
+            selectedFacility,
+            searchKey,
+            isActive,
+            currentPage - 1,
+            pageSize,
+          ], prev => {
+            if(!prev) return prev;
+            return {
+              ...prev,
+              data: {
+                ...prev.data,
+                content: prev.data.content.map(
+                  (user) => user.id === editData.id 
+                  ? editData : user
+                )
+              },
+            };
+          });
+        } else {
+          queryClient.setQueryData(
+            [
+              "facility",
+              "members",
+              selectedFacility,
+              isActive,
+              currentPage - 1,
+              pageSize,
+            ],
+            (prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                data: {
+                  ...prev.data,
+                  content: prev.data.content.map((user) =>
+                    user.id === editData.id ? editData : user
+                  ),
+                },
+              };
+            }
+          );
+        }
+      } catch (error) {
+        if (error?.response) {
+          setShowError(
+            "Đã xảy ra lỗi khi cập nhật trạng thái người dùng: " +
+              error.response.data
+          );
+        } else {
+          setShowError(error.errorMessage);
+        }
+      } finally {
+        setInProgress("");
+        setShowToggleStatusConfirm("");
+      }
+      setEditingUserId(null);
+      setEditData(null);
     };
 
     const handleCancel = () => {
@@ -690,19 +732,6 @@ export default function UserManagement() {
                   };
                 }
               );
-              console.log("reee");
-              console.log(
-                queryClient.getQueryData([
-                  "facility",
-                  "members",
-                  "search",
-                  selectedFacility,
-                  searchKey,
-                  isActive,
-                  currentPage - 1,
-                  pageSize,
-                ])
-              );
               
             }
             else {
@@ -812,16 +841,19 @@ export default function UserManagement() {
         />
       )}
       <div className="max-w-7xl mx-auto">
+        <Header
+          title={"Quản lý người dùng"}
+          description={"Quản lý người dùng trong các cơ sở"}
+        />
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">
-            Quản Lý Người Dùng
-          </h1>
-
           {/* Facility Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Chọn Cơ Sở
-            </label>
+            <div className="mb-3 flex items-center gap-2">
+              <Building2 className="text-blue-600" size={20} />
+              <h3 className="text-lg font-semibold text-gray-900">
+                Chọn cơ sở
+              </h3>
+            </div>
             <select
               value={selectedFacility || ""}
               onChange={(e) =>
@@ -835,7 +867,11 @@ export default function UserManagement() {
                     : parseInt(e.target.value)
                 )
               }
-              className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 cursor-pointer hover:border-gray-400 transition-colors"
+              className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 cursor-pointer hover:border-gray-400 transition-colors
+                bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                          dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%239ca3af%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                          bg-size-[1.5em_1.5em] bg-position-[right_0.5rem_center] bg-no-repeat
+              "
             >
               <option value="">Chọn cơ sở</option>
               <option value={"all"}>Tất cả cơ sở</option>
@@ -950,6 +986,7 @@ export default function UserManagement() {
                           editData={editData}
                           onEditChange={handleEditChange}
                           currentUserRole={currentUserRole}
+                          facilities={facilities.data}
                         />
                       ))}
                   </div>

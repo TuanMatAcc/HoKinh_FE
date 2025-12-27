@@ -11,6 +11,7 @@ import { useRef } from 'react';
 import { LoadingErrorUI } from '../components/LoadingError';
 import Banner from '../components/Banner';
 import { generateHTMLFromJSON } from '../utils/generateHtmlUtils';
+import OrcaKnowChat from '../features/ai/components/OrcaKnowChat';
 
 export function Homepage() {
 
@@ -32,6 +33,7 @@ export function Homepage() {
     <>
       <StickyNavbar role={user.role}/>
       <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-red-50">
+        <OrcaKnowChat/>
         {/* Hero Section */}
         <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -321,7 +323,7 @@ function ThemeOutlinedButton({ name, onClick }) {
       onClick={onClick} 
       className="relative px-8 py-4 bg-white rounded-full hover:scale-105 transition-all duration-300 group"
     >
-      {/* Gradient border */}
+      {/* linear border */}
       <span className="absolute inset-0 rounded-full p-0.5 bg-linear-to-r from-red-600 to-blue-600">
         <span className="flex items-center justify-center w-full h-full bg-white rounded-full"></span>
       </span>
@@ -524,78 +526,177 @@ function ScheduleContent({itemsPerPage, data}) {
 function StudyShiftCard({ cardInfo }) {
   const [currentShiftPage, setCurrentShiftPage] = useState(0);
   const shiftsPerPage = 2;
+
   const mapNumberToDay = (number) => {
     const days = {
-      '2': 'Thứ Hai',
-      '3': 'Thứ Ba',
-      '4': 'Thứ Tư',
-      '5': 'Thứ Năm',
-      '6': 'Thứ Sáu',
-      '7': 'Thứ Bảy',
-      '8': 'Chủ Nhật'
+      2: "Thứ Hai",
+      3: "Thứ Ba",
+      4: "Thứ Tư",
+      5: "Thứ Năm",
+      6: "Thứ Sáu",
+      7: "Thứ Bảy",
+      8: "Chủ Nhật",
     };
     return days[number] || number;
   };
-  const totalPages = Math.ceil(cardInfo['schedule'].length / shiftsPerPage);
+
+  const handleEnrollClick = () => {
+    if (cardInfo.phoneNumber) {
+      // Remove any non-digit characters from phone number
+      const cleanPhone = cardInfo.phoneNumber.replace(/\D/g, "");
+      // Redirect to Zalo with the phone number
+      window.open(`https://zalo.me/${cleanPhone}`, "_blank");
+    } else {
+      alert("Số điện thoại không khả dụng");
+    }
+  };
+
+  const totalPages = Math.ceil(cardInfo["schedule"].length / shiftsPerPage);
   const startIndex = currentShiftPage * shiftsPerPage;
-  const currentShifts = cardInfo['schedule'].slice(startIndex, startIndex + shiftsPerPage);
+  const currentShifts = cardInfo["schedule"].slice(
+    startIndex,
+    startIndex + shiftsPerPage
+  );
 
   return (
     <div className="group p-6 rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-blue-200 flex flex-col">
       <div className="mb-6 rounded-xl overflow-hidden">
-        <img 
-          src={cardInfo['img']} 
-          alt="Chi nhánh" 
+        <img
+          src={cardInfo["img"]}
+          alt="Chi nhánh"
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
       </div>
 
       <div className="flex items-start mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-red-500 shrink-0 mt-1">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6 text-red-500 shrink-0 mt-1"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+          />
         </svg>
-        <p className="ml-3 text-gray-700 leading-relaxed text-sm font-medium">{cardInfo.address}</p>
+        <p className="ml-3 text-gray-700 leading-relaxed text-sm font-medium">
+          {cardInfo.address}
+        </p>
       </div>
+
+      {cardInfo.personInCharge && (
+        <div className="flex items-start mb-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6 text-blue-500 shrink-0 mt-1"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+            />
+          </svg>
+          <p className="ml-3 text-gray-700 leading-relaxed text-sm font-medium">
+            <span className="font-semibold text-gray-800">
+              Người phụ trách:
+            </span>{" "}
+            {cardInfo.personInCharge}
+          </p>
+        </div>
+      )}
+
+      {cardInfo.phoneNumber && (
+        <div className="flex items-start mb-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6 text-green-500 shrink-0 mt-1"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"
+            />
+          </svg>
+          <p className="ml-3 text-gray-700 leading-relaxed text-sm font-medium">
+            <span className="font-semibold text-gray-800">Số điện thoại:</span>{" "}
+            {cardInfo.phoneNumber}
+          </p>
+        </div>
+      )}
 
       <div className="h-px bg-linear-to-r from-transparent via-gray-200 to-transparent my-4"></div>
 
       <div className="space-y-3 mb-6 grow">
         {currentShifts.map((element, index) => {
-          
-          return <div key={index} className="flex items-start p-3 rounded-lg bg-linear-to-r from-blue-50 to-red-50 hover:from-blue-100 hover:to-red-100 transition-colors duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-600 shrink-0 mt-0.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-            </svg>
-            <div className="ml-3">
-              <p className="text-gray-800 text-sm font-semibold">
-                {element.day.split('-').map(mapNumberToDay).join(', ')}
-              </p>
-              <p className="text-gray-600 text-sm mt-1">
-                {element.shift.join(' hoặc ')}
-              </p>
+          return (
+            <div
+              key={index}
+              className="flex items-start p-3 rounded-lg bg-linear-to-r from-blue-50 to-red-50 hover:from-blue-100 hover:to-red-100 transition-colors duration-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 text-blue-600 shrink-0 mt-0.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
+                />
+              </svg>
+              <div className="ml-3">
+                <p className="text-gray-800 text-sm font-semibold">
+                  {element.day.split("-").map(mapNumberToDay).join(", ")}
+                </p>
+                <p className="text-gray-600 text-sm mt-1">
+                  {element.shift.join(" hoặc ")}
+                </p>
+              </div>
             </div>
-          </div>
+          );
         })}
       </div>
-      
+
       {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-12">
+        <div className="flex justify-center gap-2 mt-4">
           {Array.from({ length: totalPages }).map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentShiftPage(index)}
               className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index === currentShiftPage 
-                  ? 'bg-linear-to-r from-red-600 to-blue-600 w-8' 
-                  : 'bg-gray-300 hover:bg-gray-400'
+                index === currentShiftPage
+                  ? "bg-linear-to-r from-red-600 to-blue-600 w-8"
+                  : "bg-gray-300 hover:bg-gray-400"
               }`}
             />
           ))}
         </div>
       )}
 
-      <button className="mt-6 w-full py-3 bg-linear-to-r from-red-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200">
+      <button
+        onClick={handleEnrollClick}
+        className="mt-6 w-full py-3 bg-linear-to-r from-red-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200"
+      >
         Đăng ký ngay
       </button>
     </div>
