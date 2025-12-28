@@ -5,6 +5,7 @@ import MultiTabLayout from "../components/LayoutPageMultiTab";
 import SessionStatisticsUI from "../features/statistics/session/components/SessionStatisticsManagement.jsx";
 import FacilitySelector from "../components/FacilitySelector.jsx";
 import { useFacility } from "../hooks/useFacilityData.js";
+import Header from "../components/Header.jsx";
 
 const StatisticsManagement = () => {
   const [startDate, setStartDate] = useState("");
@@ -54,6 +55,10 @@ const StatisticsManagement = () => {
     <div className="mx-auto max-w-7xl">
       {!isChildComponent && (
         <>
+          <Header
+            title={"Thống kê"}
+            description={"Thống kê buổi học trong câu lạc bộ"}
+          />
           <FacilitySelector
             facilityMap={facilityMap}
             selectedFacility={selectedFacility}

@@ -120,7 +120,7 @@ export default function AccountSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-100 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">

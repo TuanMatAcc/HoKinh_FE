@@ -9,6 +9,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { useManagers } from "../hooks/useManagers";
 import { LoadingErrorUI } from "../components/LoadingError";
 import ManagerModal from "../features/manager-management/components/ManagerModal";
+import Header from "../components/Header";
 
 // Validation utilities
 const validatePhone = (phone) => /^\d{10}$/.test(phone);
@@ -477,13 +478,13 @@ const ManagerManagement = () => {
   return (
     <>
       {inProgress && <ThreeDotLoader message={inProgress} />}
-      {isCreateModalOpen && 
+      {isCreateModalOpen && (
         <ManagerModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           onSubmit={handleCreateSubmit}
         />
-      }
+      )}
       {deletedUser && (
         <ConfirmDialog
           action="remove"
@@ -505,23 +506,19 @@ const ManagerManagement = () => {
       )}
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Quản Lý Người Dùng
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Quản lý thông tin các quản lý cơ sở
-              </p>
-            </div>
-            <button
-              onClick={handleCreateManager}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Thêm Quản Lý
-            </button>
-          </div>
+            <Header
+              title={"Quản lý"}
+              description={"Quản lý người đứng đầu ở các cơ sở"}
+              functionButton={
+                <button
+                  onClick={handleCreateManager}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                >
+                  <Plus className="w-5 h-5" />
+                  Thêm Quản Lý
+                </button>
+              }
+            />
 
           <FilterTabs activeFilter={isActive} onFilterChange={setIsActive} />
 

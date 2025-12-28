@@ -200,7 +200,7 @@ const EquipmentManagement = () => {
 
   if(view === 'list') {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-100 p-6">
+      <div className="min-h-screen p-6">
         {inProgress && <ThreeDotLoader message={inProgress} />}
         {showError && (
           <AnnouncementUI message={showError} setVisible={setShowError} />

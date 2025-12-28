@@ -15,6 +15,8 @@ import {
   HardDrive,
 } from "lucide-react";
 import { fileStoreAPI } from "../services/ai_api";
+import formatDate from "../utils/formatDate";
+import Header from "../components/Header";
 
 // File icon component
 const FileIcon = ({ type }) => {
@@ -44,26 +46,26 @@ const FileIcon = ({ type }) => {
 const StatusBadge = ({ status }) => {
   const styles = {
     STATE_ACTIVE: "bg-green-100 text-green-800 border-green-200",
-    PROCESSING: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    STATE_PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
     error: "bg-red-100 text-red-800 border-red-200",
   };
 
   const icons = {
     STATE_ACTIVE: <CheckCircle className="w-3 h-3" />,
-    PROCESSING: <Loader2 className="w-3 h-3 animate-spin" />,
+    STATE_PENDING: <Loader2 className="w-3 h-3 animate-spin" />,
     error: <AlertCircle className="w-3 h-3" />,
   };
 
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${
-        styles[status] || styles.PROCESSING
+        styles[status] || styles.STATE_PENDING
       }`}
     >
       {icons[status]}
       {status === "STATE_ACTIVE"
         ? "Đã lập chỉ mục"
-        : status === "PROCESSING"
+        : status === "STATE_PENDING"
         ? "Đang xử lý"
         : "Lỗi"}
     </span>
@@ -71,9 +73,8 @@ const StatusBadge = ({ status }) => {
 };
 
 // File item component
-const FileItem = ({ file, onDelete, onReindex }) => {
+const FileItem = ({ file, onDelete}) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isReindexing, setIsReindexing] = useState(false);
 
   const handleDelete = async () => {
     if (!window.confirm(`Bạn có chắc muốn xóa file "${file.name}"?`)) return;
@@ -83,15 +84,6 @@ const FileItem = ({ file, onDelete, onReindex }) => {
       await onDelete(file.id);
     } finally {
       setIsDeleting(false);
-    }
-  };
-
-  const handleReindex = async () => {
-    setIsReindexing(true);
-    try {
-      await onReindex(file.id);
-    } finally {
-      setIsReindexing(false);
     }
   };
 
@@ -113,7 +105,11 @@ const FileItem = ({ file, onDelete, onReindex }) => {
             </span>
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              {file.uploadDate}
+              {formatDate({
+                    dateString: file.uploadDate,
+                    region: "vi-VN"
+                })
+              }
             </span>
           </div>
           <div className="mt-2">
@@ -122,18 +118,6 @@ const FileItem = ({ file, onDelete, onReindex }) => {
         </div>
 
         <div className="flex gap-2">
-          <button
-            onClick={handleReindex}
-            disabled={isReindexing || file.status === "PROCESSING"}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Lập chỉ mục lại"
-          >
-            {isReindexing ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <RefreshCw className="w-5 h-5" />
-            )}
-          </button>
           <button
             onClick={handleDelete}
             disabled={isDeleting}
@@ -230,26 +214,6 @@ const VectorStoreManager = () => {
       showNotification("Không thể xóa file", "error");
     }
   };
-
-  const handleReindex = async (fileId) => {
-    try {
-      await fileStoreAPI.reindexFile(fileId);
-      setFiles((prev) =>
-        prev.map((f) => (f.id === fileId ? { ...f, status: "PROCESSING" } : f))
-      );
-      showNotification("Đã bắt đầu lập chỉ mục lại");
-
-      // Simulate status update after 3 seconds
-      setTimeout(() => {
-        setFiles((prev) =>
-          prev.map((f) => (f.id === fileId ? { ...f, status: "STATE_ACTIVE" } : f))
-        );
-      }, 3000);
-    } catch (error) {
-      showNotification("Không thể lập chỉ mục lại", "error");
-    }
-  };
-  console.log(files);
   
   const filteredFiles = files.filter((file) =>
     file.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -259,14 +223,10 @@ const VectorStoreManager = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Quản lý Vector Store
-          </h1>
-          <p className="text-gray-600">
-            Quản lý các file đã được chuyển đổi thành vector cho AI
-          </p>
-        </div>
+        <Header
+        title={"Huấn luyện AI"}
+        description={"Quản lý các file AI sẽ dùng để tạo ra câu trả lời"}
+        />
 
         {/* Notification */}
         {notification && (
@@ -370,7 +330,7 @@ const VectorStoreManager = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {files.filter((f) => f.status === "PROCESSING").length}
+                  {files.filter((f) => f.status === "STATE_PENDING").length}
                 </p>
                 <p className="text-sm text-gray-600">Đang xử lý</p>
               </div>
@@ -400,7 +360,6 @@ const VectorStoreManager = () => {
                 key={file.id}
                 file={file}
                 onDelete={handleDelete}
-                onReindex={handleReindex}
               />
             ))
           )}

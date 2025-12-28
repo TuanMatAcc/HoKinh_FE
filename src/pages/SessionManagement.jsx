@@ -34,7 +34,7 @@ const SessionManagement = () => {
   // Classes List View
   if (view === "list") {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-100 p-6">
+      <div className="min-h-screen p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <Header
