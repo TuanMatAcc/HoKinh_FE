@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const CLOUD_NAME = "djs7thm99"; // from Cloudinary
+const CLOUD_NAME = "dwbfba3vn"; // from Cloudinary
 
 const API_BASE_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}`;
 const storage_api = axios.create({
