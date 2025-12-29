@@ -1,4 +1,4 @@
-import { Edit2, Save, X } from "lucide-react";
+import { Edit2, Save, Trash2, X } from "lucide-react";
 import { StatusBadge } from "./EquipmentStatus";
 
 // Equipment Row Component
@@ -8,6 +8,7 @@ const EquipmentRow = ({
   onEdit,
   onSave,
   onCancel,
+  onDelete,
   onChange,
   facilities,
   onShowDescription,
@@ -182,13 +183,22 @@ const EquipmentRow = ({
         {formatDate(equipment.updatedAt)}
       </td>
       <td className="px-4 py-3">
-        <button
-          onClick={onEdit}
-          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-          title="Chỉnh sửa"
-        >
-          <Edit2 className="w-4 h-4" />
-        </button>
+        <div className="flex">
+          <button
+            onClick={onEdit}
+            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            title="Chỉnh sửa"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete(equipment.id)}
+            className="ml-1 p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            title="Xóa"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </td>
     </tr>
   );

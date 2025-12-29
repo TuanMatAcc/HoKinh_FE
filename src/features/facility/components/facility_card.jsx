@@ -194,17 +194,17 @@ export function BranchCard({
                             type="text"
                             value={branchInfo.name}
                             onChange={(e) => updateBranch('name', e.target.value)}
-                            className="text-2xl font-bold text-gray-800 border-b-2 border-red-600 focus:outline-none w-full bg-transparent pb-2"
+                            className="text-2xl font-bold text-gray-800 border-b-2 border-blue-600 focus:outline-none w-full bg-transparent pb-2"
                         />
                         ) : (
-                        <h4 className="text-2xl font-bold bg-linear-to-r from-red-600 to-red-800 bg-clip-text text-transparent">{branchInfo.name}</h4>
+                        <h4 className="text-2xl font-bold bg-linear-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">{branchInfo.name}</h4>
                         )}
                     </div>
                     <div className="flex gap-2">
                         {editingBranch === branchInfo.id && (
                             <button
                             onClick={() => undoUpdate(branchInfo.id)}
-                            className="p-2.5 text-yellow-500 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110 shadow-sm"
+                            className="p-2.5 text-yellow-500 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-110 shadow-sm"
                             >
                             <Undo size={20} />
                             </button>
@@ -229,7 +229,7 @@ export function BranchCard({
                     value={branchInfo.address}
                     onChange={(e) => updateBranch('address', e.target.value)}
                     disabled={editingBranch !== branchInfo.id}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none disabled:bg-gray-50 disabled:text-gray-600 transition-all"
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none disabled:bg-gray-50 disabled:text-gray-600 transition-all"
                     />
                 </div>
                 <div>
@@ -239,7 +239,7 @@ export function BranchCard({
                     value={branchInfo.phoneNumber}
                     onChange={(e) => updateBranch('phoneNumber', e.target.value)}
                     disabled={editingBranch !== branchInfo.id}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none disabled:bg-gray-50 disabled:text-gray-600 transition-all"
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none disabled:bg-gray-50 disabled:text-gray-600 transition-all"
                     />
                     {!(/^\d{10}$/.test(branchInfo.phoneNumber)) && 
                         <ValidatedMessage message="Số điện thoại phải đủ 10 số"/>
@@ -253,7 +253,7 @@ export function BranchCard({
                     value={branchInfo.mapsLink}
                     onChange={(e) => updateBranch('mapsLink', e.target.value)}
                     disabled={editingBranch !== branchInfo.id}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none disabled:bg-gray-50 disabled:text-gray-600 transition-all"
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none disabled:bg-gray-50 disabled:text-gray-600 transition-all"
                     />
                 </div>
 
@@ -266,7 +266,7 @@ export function BranchCard({
                         accept="image/*"
                         onChange={handleFileChange}
                         disabled={editingBranch !== branchInfo.id}
-                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none disabled:bg-gray-50 disabled:text-gray-600 transition-all"
+                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none disabled:bg-gray-50 disabled:text-gray-600 transition-all"
                     />
 
                     {preview && branchInfo.id === editingBranch && (
@@ -282,7 +282,7 @@ export function BranchCard({
                                 <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-3 flex justify-end">
                                     <button
                                         onClick={() => clearFile()}
-                                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all flex items-center gap-1.5 text-sm font-medium"
+                                        className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all flex items-center gap-1.5 text-sm font-medium"
                                     >
                                         <Trash2 size={16} />
                                         Xóa
@@ -304,7 +304,7 @@ export function BranchCard({
                 <div className="border-t border-gray-200 pt-5">
                 <div className="flex justify-between items-center mb-4">
                     <h5 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <Calendar size={20} className="text-red-600" />
+                    <Calendar size={20} className="text-blue-600" />
                     Lớp học
                     </h5>
                 </div>
@@ -437,7 +437,7 @@ function ClassSection({
 
     return (
         <div className="space-y-4">
-            {/* Show class cards that is already stored in database */}
+            {/* Show class cards that is already stoblue in database */}
             {branchInfo.classes.map(cls => (
                 <div key={cls.id} className="bg-linear-to-br from-gray-50 to-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-4">
@@ -449,7 +449,7 @@ function ClassSection({
                         onChange={(e) => updateClass(cls.id, 'name', e.target.value)}
                         placeholder={"Tên gợi ý: " + cls.daysOfWeek}
                         disabled= {editingBranch !== branchInfo.id}
-                        className="placeholder:text-gray-400 placeholder:italic w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none"
+                        className="placeholder:text-gray-400 placeholder:italic w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
                     />
                     </div>
                 </div>
@@ -485,12 +485,12 @@ function ClassSection({
                         value={cls.startHour}
                         onChange={(e) => updateClass(cls.id, 'startHour', e.target.value)}
                         disabled= {editingBranch !== branchInfo.id}
-                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none"
+                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
                     />
                     </div>
                     <div>
                     <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <Clock size={16} className="text-red-600" />
+                        <Clock size={16} className="text-blue-600" />
                         Giờ kết thúc
                     </label>
                     <input
@@ -498,7 +498,7 @@ function ClassSection({
                         value={cls.endHour}
                         onChange={(e) => updateClass(cls.id, 'endHour', e.target.value)}
                         disabled= {editingBranch !== branchInfo.id}
-                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none"
+                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
                     />
                     </div>
                 </div>

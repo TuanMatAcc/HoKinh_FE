@@ -1,9 +1,10 @@
-const validateUserForm = ({editUserForm}) => {
+const validateUserForm = ({editUserForm, isStudent}) => {
     const newErrors = {};
 
-    if (!editUserForm.id.trim()) {
-      newErrors.id = "ID người dùng là bắt buộc";
-    } else if (editUserForm.id.length > 100) {
+    if (isStudent && (!editUserForm.id.trim())) {
+      newErrors.id = "ID võ sinh là bắt buộc";
+    } 
+    else if (editUserForm.id.length > 100) {
       newErrors.id = "ID người dùng không được vượt quá 100 ký tự";
     }
 

@@ -16,7 +16,7 @@ const WebsiteManagement = () => {
           title={"Quản lý Website"}
           description={"Quản lý các thông tin giờ học, bài đăng, giải thưởng hiển thị trên website của câu lạc bộ"}
         />
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2">
+        <div className="mt-3 bg-white rounded-xl shadow-sm border border-gray-200 p-2">
           <div className="flex gap-2">
             <button
               onClick={() => setWebsiteTab("facilities")}

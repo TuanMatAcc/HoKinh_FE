@@ -13,11 +13,15 @@ import SuccessAnnouncement from "../components/SuccessAnnouncement";
 import { FilterBar } from "../features/equipment/components/equipment_management/FilterBar";
 import { EditDescriptionModal, DescriptionModal } from "../features/equipment/components/equipment_management/EquipmentStatus";
 import EquipmentRow from "../features/equipment/components/equipment_management/EquipmentRow";
+import { useQueryClient } from "@tanstack/react-query";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 // Main Component
 const EquipmentManagement = () => {
   const { data: facilities } = useFacility();
+  const queryClient = useQueryClient();
   const {data: equipmentData} = useEquipments();
+  const [showDelete, setShowDelete] = useState("");
   const [showSuccess, setShowSuccess] = useState("");
   const [showError, setShowError] = useState("");
   const [inProgress, setInProgress] = useState("");
@@ -93,8 +97,28 @@ const EquipmentManagement = () => {
     );
   };
 
+  const handleDelete = async (id) => {
+    try {
+      setShowDelete("");
+      setInProgress("Đang xóa thiết bị")
+      await equipmentService.deleteEquipment(id);
+      queryClient.invalidateQueries(["equipments", "management"]);
+      setShowSuccess("Bạn đã xóa thiết bị thành công");
+    }
+    catch(error) {
+      if(error?.response) {
+        setShowError("Đã xảy ra lỗi trong quá trình xóa thiết bị. Chi tiết lỗi: " + error.response.data);
+      }
+      else {
+        setShowError("Đã xảy ra lỗi trong quá trình xóa thiết bị");
+      }
+    }
+    finally {
+      setInProgress("");
+    }
+  }
+
   const handleSaveAll = async () => {
-    console.log("Saving changes:", Object.fromEntries(changedEquipments));
     try {
         setInProgress("Đang cập nhật thiết bị");
         await equipmentService.updateEquipments([...changedEquipments.values()]);
@@ -212,6 +236,15 @@ const EquipmentManagement = () => {
             onBack={() => setShowSuccess("")}
           />
         )}
+        {showDelete && (
+          <ConfirmDialog
+            action="remove"
+            title={"Xóa thiết bị"}
+            askDetail={"Bạn có chắc chắn muốn xóa thiết bị này không ?"}
+            handleCancel={() => setShowDelete("")}
+            handleConfirm={() => handleDelete(showDelete)}
+          />
+        )}
         <div className="max-w-7xl mx-auto">
           <Header
             title="Quản lý thiết bị"
@@ -254,36 +287,36 @@ const EquipmentManagement = () => {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-100 border-b">
+                <thead className="bg-blue-600 border-b">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Tên thiết bị
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Cơ sở
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Đơn vị
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Hư
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Cần sửa
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Tốt
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Tổng
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Ngày tạo
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Cập nhật
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                       Thao tác
                     </th>
                   </tr>
@@ -301,6 +334,7 @@ const EquipmentManagement = () => {
                         onChange={(field, value) =>
                           handleChange(equipment.id, field, value)
                         }
+                        onDelete={setShowDelete}
                         facilities={facilities?.data}
                         onShowDescription={handleShowDescription}
                         onEditDescription={handleEditDescription}

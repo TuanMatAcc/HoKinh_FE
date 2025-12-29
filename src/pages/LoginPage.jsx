@@ -126,7 +126,7 @@ export function LoginPage() {
                     htmlFor="email"
                     className="block text-sm font-semibold text-gray-700"
                   >
-                    Email
+                    Mã người dùng
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -146,13 +146,13 @@ export function LoginPage() {
                       </svg>
                     </div>
                     <input
-                      type="email"
+                      type="text"
                       id="username"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       disabled={authenticatingState === WAIT}
                       className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
-                      placeholder="example@email.com"
+                      placeholder="Nhập mã người dùng"
                     />
                   </div>
                 </div>

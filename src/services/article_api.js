@@ -1,8 +1,8 @@
 import api from "./client"
 
 export const articleService = {
-    getDataHomepage: (page, size) => api.get('/api/article/homepage', {
-        params: {page, size}
+    getDataHomepage: (page, size, type) => api.get('/api/article/homepage', {
+        params: {page, size, type}
     }),
     getAllArticlesByCategory: (categoryId) => api.get('/api/article/admin/all-articles-by-category', {
         params: {categoryId}

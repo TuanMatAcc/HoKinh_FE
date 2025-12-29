@@ -162,14 +162,12 @@ const EditFacility = ({ managerOptions, facility, setFacility, onSave, onCancel 
         }));
         const address = (await geocodingService.getAddress(coordinates.lat, coordinates.lng)).data;
 
-        console.log(address); // "123 Street, District 1, Ho Chi Minh City, Vietnam"
-
         setFormData((form) => ({
           ...form,
           address:address
         }));
       } catch (err) {
-        console.error("Invalid Google Maps link:", err);
+        console.log("Invalid Google Maps link:", err);
       }
     };
 

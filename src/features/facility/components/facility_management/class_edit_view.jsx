@@ -210,12 +210,6 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
     
   };
 
-  const checkDuplicatedUserId = (userId) => {
-    if(activeMembers) {
-      
-    }
-  }
-
   const changeUserInNewUserList = (user) => {
     
     let previousRoleInClass = user.roleInClass;
@@ -353,7 +347,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
   };
 
   const handleAddNewUser = () => {
-    if (validateNewUserForm()) {
+    if (validateNewUserForm(newEditedUser.role === 4)) {
       setNewUsers((prev) => ({
         ...prev,
         [newEditedUser.roleInClass]: prev[newEditedUser.roleInClass]
@@ -423,11 +417,10 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
     }
   };
 
-  const validateNewUserForm = () => {
+  const validateNewUserForm = (isStudent) => {
     const newErrors = {};
-
-    if(!newEditedUser.id.trim()) {
-      newErrors.id = "ID người dùng là bắt buộc";
+    if(isStudent && (!newEditedUser.id.trim())) {
+      newErrors.id = "ID võ sinh là bắt buộc";
     }
     else if (newEditedUser.id.length > 100) {
       newErrors.id = "ID người dùng không được vượt quá 100 ký tự";
@@ -763,7 +756,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                     value={editForm.name}
                     onChange={(e) => {
                       handleOnChange("name", e.target.value);
-                      if (state === "newUser") {
+                      if (state === "newUser" && editForm.role === 4) {
                         handleOnChange(
                           "id",
                           generateHVCode(e.target.value, editForm.dateOfBirth)
@@ -787,7 +780,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                     value={editForm.dateOfBirth}
                     onChange={(e) => {
                       handleOnChange("dateOfBirth", e.target.value);
-                      if (state === "newUser") {
+                      if (state === "newUser" && editForm.role === 4) {
                         handleOnChange(
                           "id",
                           generateHVCode(editForm.name, e.target.value)
@@ -857,21 +850,26 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                     className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 cursor-pointer hover:border-gray-400 transition-colors"
                   >
                     <option value="">Không</option>
-                    <option value="white">Đai Trắng</option>
-                    <option value="yellow">Đai Vàng</option>
-                    <option value="green">Đai Xanh Lục</option>
-                    <option value="blue">Đai Xanh</option>
-                    <option value="red">Đai Đỏ</option>
-                    <option value="black/1">Đai Đen 1 Đẳng</option>
-                    <option value="black/2">Đai Đen 2 Đẳng</option>
-                    <option value="black/3">Đai Đen 3 Đẳng</option>
-                    <option value="black/4">Đai Đen 4 Đẳng</option>
-                    <option value="black/5">Đai Đen 5 Đẳng</option>
-                    <option value="black/6">Đai Đen 6 Đẳng</option>
-                    <option value="black/7">Đai Đen 7 Đẳng</option>
-                    <option value="black/8">Đai Đen 8 Đẳng</option>
-                    <option value="black/9">Đai Đen 9 Đẳng</option>
-                    <option value="black/10">Đai Đen 10 Đẳng</option>
+                    <option value="T10">Đai Trắng Cấp 10</option>
+                    <option value="T9">Đai Trắng Cấp 9</option>
+                    <option value="T8">Đai Trắng Cấp 8</option>
+                    <option value="V7">Đai Vàng Cấp 7</option>
+                    <option value="XL6">Đai Xanh Lá Cấp 6</option>
+                    <option value="XD5">Đai Xanh Dương Cấp 5</option>
+                    <option value="ĐỎ 4">Đai Đỏ Cấp 4</option>
+                    <option value="ĐỎ 3">Đai Đỏ Cấp 3</option>
+                    <option value="ĐỎ 2">Đai Đỏ Cấp 2</option>
+                    <option value="ĐỎ 1">Đai Đỏ Cấp 1</option>
+                    <option value="1Đ">Đai Đen 1 Đẳng</option>
+                    <option value="2Đ">Đai Đen 2 Đẳng</option>
+                    <option value="3Đ">Đai Đen 3 Đẳng</option>
+                    <option value="4Đ">Đai Đen 4 Đẳng</option>
+                    <option value="5Đ">Đai Đen 5 Đẳng</option>
+                    <option value="6Đ">Đai Đen 6 Đẳng</option>
+                    <option value="7Đ">Đai Đen 7 Đẳng</option>
+                    <option value="8Đ">Đai Đen 8 Đẳng</option>
+                    <option value="9Đ">Đai Đen 9 Đẳng</option>
+                    <option value="10Đ">Đai Đen 10 Đẳng</option>
                   </select>
                 </div>
                 {state !== "newUser" && (
@@ -932,7 +930,6 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
               )}
 
               {/* Row 5: Hình đại diện (full width) */}
-              
             </div>
             <div className="flex gap-2 justify-end pt-2 border-t">
               <button
@@ -959,6 +956,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                   };
                   const check = validateUserForm({
                     editUserForm: updatedMember,
+                    isStudent: updatedMember.role === 4
                   });
                   if (Object.keys(check).length > 0) {
                     setMemberCardErrors(check);
@@ -1584,20 +1582,22 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                             }`}
                             onChange={(e) => {
                               editNewUser("name", e.target.value);
-                              editNewUser(
-                                "id",
-                                generateHVCode(
-                                  e.target.value,
-                                  newEditedUser.dateOfBirth
-                                )
-                              );
-                              editNewUser(
-                                "previousId",
-                                generateHVCode(
-                                  e.target.value,
-                                  newEditedUser.dateOfBirth
-                                )
-                              );
+                              if(newEditedUser.role === 4) {
+                                editNewUser(
+                                  "id",
+                                  generateHVCode(
+                                    e.target.value,
+                                    newEditedUser.dateOfBirth
+                                  )
+                                );
+                                editNewUser(
+                                  "previousId",
+                                  generateHVCode(
+                                    e.target.value,
+                                    newEditedUser.dateOfBirth
+                                  )
+                                );
+                              }
                             }}
                           />
                           {errors.name && (
@@ -1620,7 +1620,8 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                             }`}
                             onChange={(e) => {
                               editNewUser("dateOfBirth", e.target.value);
-                              editNewUser(
+                              if(newEditedUser.role === 4) {
+                                editNewUser(
                                 "id",
                                 generateHVCode(
                                   newEditedUser.name,
@@ -1634,6 +1635,7 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                                   e.target.value
                                 )
                               );
+                              }
                             }}
                           />
                           {errors.dateOfBirth && (
@@ -1700,21 +1702,26 @@ const ClassDetailPage = ({ classDetail, facilityId, onSave, onCancel }) => {
                           value={newEditedUser.beltLevel}
                         >
                           <option value="">Không</option>
-                          <option value="white">Đai Trắng</option>
-                          <option value="yellow">Đai Vàng</option>
-                          <option value="green">Đai Xanh Lục</option>
-                          <option value="blue">Đai Xanh</option>
-                          <option value="red">Đai Đỏ</option>
-                          <option value="black/1">Đai Đen 1 Đẳng</option>
-                          <option value="black/2">Đai Đen 2 Đẳng</option>
-                          <option value="black/3">Đai Đen 3 Đẳng</option>
-                          <option value="black/4">Đai Đen 4 Đẳng</option>
-                          <option value="black/5">Đai Đen 5 Đẳng</option>
-                          <option value="black/6">Đai Đen 6 Đẳng</option>
-                          <option value="black/7">Đai Đen 7 Đẳng</option>
-                          <option value="black/8">Đai Đen 8 Đẳng</option>
-                          <option value="black/9">Đai Đen 9 Đẳng</option>
-                          <option value="black/10">Đai Đen 10 Đẳng</option>
+                          <option value="T10">Đai Trắng Cấp 10</option>
+                          <option value="T9">Đai Trắng Cấp 9</option>
+                          <option value="T8">Đai Trắng Cấp 8</option>
+                          <option value="V7">Đai Vàng Cấp 7</option>
+                          <option value="XL6">Đai Xanh Lá Cấp 6</option>
+                          <option value="XD5">Đai Xanh Dương Cấp 5</option>
+                          <option value="ĐỎ 4">Đai Đỏ Cấp 4</option>
+                          <option value="ĐỎ 3">Đai Đỏ Cấp 3</option>
+                          <option value="ĐỎ 2">Đai Đỏ Cấp 2</option>
+                          <option value="ĐỎ 1">Đai Đỏ Cấp 1</option>
+                          <option value="1Đ">Đai Đen 1 Đẳng</option>
+                          <option value="2Đ">Đai Đen 2 Đẳng</option>
+                          <option value="3Đ">Đai Đen 3 Đẳng</option>
+                          <option value="4Đ">Đai Đen 4 Đẳng</option>
+                          <option value="5Đ">Đai Đen 5 Đẳng</option>
+                          <option value="6Đ">Đai Đen 6 Đẳng</option>
+                          <option value="7Đ">Đai Đen 7 Đẳng</option>
+                          <option value="8Đ">Đai Đen 8 Đẳng</option>
+                          <option value="9Đ">Đai Đen 9 Đẳng</option>
+                          <option value="10Đ">Đai Đen 10 Đẳng</option>
                         </select>
                       </div>
 

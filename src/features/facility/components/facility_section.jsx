@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { BranchCard } from "./facility_card";
 import { useQuery } from "@tanstack/react-query";
 import { facilityService } from "../../../services/facility_api";
-import { Plus } from 'lucide-react';
 import { BranchesSkeleton } from "./facility_skeleton";
 import { LoadingErrorUI } from "../../../components/LoadingError";
 import AnnouncementUI from "../../../components/Announcement";
@@ -77,7 +76,7 @@ export function BranchesSection() {
       {isPending && <BranchesSkeleton/>}
       {isError && <LoadingErrorUI refetchData={refetch} errorMessage="Không thể tải thông tin cơ sở"/>}
       {isSuccess && <div>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-xl shadow-sm border border-gray-200">
           <div>
             <h3 className="text-xl font-semibold text-gray-800">Quản Lý Chi Nhánh</h3>
             <p className="text-sm text-gray-500 mt-1">Chỉnh sửa thông tin chi nhánh hiển thị trên website</p>
@@ -85,7 +84,7 @@ export function BranchesSection() {
           
         </div>
 
-        <div className="flex flex-col justify-between items-start gap-4 bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+        <div className="mb-6 flex flex-col justify-between items-start gap-4 bg-white p-5 rounded-xl shadow-sm border border-gray-200">
             <label htmlFor='branches' className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Lựa chọn chi nhánh</label>
               <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">

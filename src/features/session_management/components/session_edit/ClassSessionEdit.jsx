@@ -11,10 +11,11 @@ import AnnouncementUI from "../../../../components/Announcement";
 import { ThreeDotLoader } from "../../../../components/ActionFallback";
 import { ConfirmDialog } from "../../../../components/ConfirmDialog";
 import { sessionService } from "../../../../services/session_api";
-import { getDayOfWeek } from "../../../../utils/formatDateAndTimeType";
+import { convertDateInputToVN, getDayOfWeek } from "../../../../utils/formatDateAndTimeType";
 import { useActiveClassMembers } from "../../../../hooks/useClassMembers";
 import { useQueryClient } from "@tanstack/react-query";
 import getDay from "../../../../utils/getVietnameseDay";
+import SuccessAnnouncement from "../../../../components/SuccessAnnouncement";
 
 // Main Component
 const ClassSessionEdit = ({ setView, facilities }) => {
@@ -22,6 +23,7 @@ const ClassSessionEdit = ({ setView, facilities }) => {
   const queryClient = useQueryClient();
   const [selectedFacility, setSelectedFacility] = useState(null);
   const [showError, setShowError] = useState(false);
+  const [showSuccess, setShowSuccess] = useState("");
   const errorMessage = useRef("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [inProgress, setInProgress] = useState(false);
@@ -35,7 +37,7 @@ const ClassSessionEdit = ({ setView, facilities }) => {
     isOpen: false,
     day: null,
   });
-  const maxDaysPeriod = 1000;
+  const maxDaysPeriod = 366;
 
   // Initialize templates when days are selected
   const initializeTemplates = () => {
@@ -295,6 +297,7 @@ const ClassSessionEdit = ({ setView, facilities }) => {
           dateRange.end,
           templateData
         );
+        setShowSuccess("Tạo thành công buổi học từ " + convertDateInputToVN(dateRange.start) + " đến " + convertDateInputToVN(dateRange.end));
         setInProgress(false);
         queryClient.invalidateQueries({
           queryKey: ["sessions"],
@@ -334,6 +337,13 @@ const ClassSessionEdit = ({ setView, facilities }) => {
           setVisible={setShowError}
         />
       )}
+      {showSuccess &&
+        <SuccessAnnouncement
+          actionAnnouncement={"Tạo buổi học hàng loạt thành công"}
+          detailAnnouncement={showSuccess}
+          onBack={() => setShowSuccess("")}
+        />
+      }
       {showConfirmDialog && (
         <ConfirmDialog
           title={

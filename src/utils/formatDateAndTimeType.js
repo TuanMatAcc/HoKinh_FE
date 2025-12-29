@@ -15,7 +15,7 @@ export function getDayOfWeek(input, locale = "vi") {
     else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(input)) {
       const [a, b, c] = input.split("/").map(Number);
 
-      // 🇻🇳 Vietnamese format dd/mm/yyyy → day > 12 means VN
+      // Vietnamese format dd/mm/yyyy → day > 12 means VN
       let day, month, year;
 
       if (a > 12) {
@@ -58,7 +58,9 @@ export function getStudyHour(time) {
 
 export function convertDateInputToVN(inputValue, toUnit) {
   if (!inputValue) return "";
-
+  if(inputValue.split("-")[0].length != 4) {
+    return inputValue;
+  }
   // inputValue format: "yyyy-mm-dd"
   const [year, month, day] = inputValue.split("-");
   if(toUnit === 'd') {

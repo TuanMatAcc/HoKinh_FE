@@ -20,6 +20,13 @@ import Header from '../components/Header';
 import { deleteActiveClassMembers, deleteInactiveClassMembers } from '../hooks/useClassMembers';
 
 const FacilityManagement = () => {
+  const [user] = useState({
+    ...JSON.parse(
+      localStorage.getItem("userInfo")
+        ? localStorage.getItem("userInfo")
+        : getDefaultUser()
+    )
+  });
     const [view, setView] = useState('list'); // 'list' or 'detail'
     const [selectedFacility, setSelectedFacility] = useState(null);
     const [selectedClass, setSelectedClass] = useState(null);
@@ -429,13 +436,15 @@ const FacilityManagement = () => {
                   title={"Quản lý Cơ sở"}
                   description={"Quản lý thông tin các cơ sở"}
                   functionButton={
-                    <button
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium shadow-sm"
-                      onClick={() => setView("edit")}
-                    >
-                      <Plus className="w-5 h-5" />
-                      Thêm cơ sở mới
-                    </button>
+                    user.role === 0 && (
+                      <button
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium shadow-sm"
+                        onClick={() => setView("edit")}
+                      >
+                        <Plus className="w-5 h-5" />
+                        Thêm cơ sở mới
+                      </button>
+                    )
                   }
                 />
 

@@ -582,16 +582,6 @@ const ClassScheduleView = ({setSelectedClass, setView, selectedClass}) => {
               setSessionDetail={setSessionDetail}
               defaultUsers={defaultUsers}
             />
-
-            {/* Quick Actions */}
-            <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-              <div className="flex flex-wrap gap-4">
-                <button className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Xuất Lịch Học
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}

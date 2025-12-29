@@ -12,14 +12,15 @@ import { LoadingErrorUI } from '../components/LoadingError';
 import Banner from '../components/Banner';
 import { generateHTMLFromJSON } from '../utils/generateHtmlUtils';
 import OrcaKnowChat from '../features/ai/components/OrcaKnowChat';
+import RegistrationModal from '../features/register/components/RegistrationModal';
 
 export function Homepage() {
 
-  const [scrollProgress, setScrollProgress] = useState(0);
   const scheduleSectionRef = useRef(null);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const achievementSectionRef = useRef(null);
   const eventSectionRef = useRef(null);
-  const informationSectionRef = useRef(null);
+  const articleSectionRef = useRef(null);
   const [user] = useState({
       ...JSON.parse(
         localStorage.getItem("userInfo")
@@ -31,66 +32,86 @@ export function Homepage() {
     
   return (
     <>
-      <StickyNavbar role={user.role}/>
+      {showRegistrationModal && (
+        <RegistrationModal setIsOpen={setShowRegistrationModal} />
+      )}
+      <StickyNavbar role={user.role} />
       <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-red-50">
-        <OrcaKnowChat/>
+        <OrcaKnowChat />
         {/* Hero Section */}
         <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="space-y-8 lg:pr-8">
-              <div className="space-y-4">
-                <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight">
-                  <span className="bg-linear-to-r from-red-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    Câu lạc bộ
-                  </span>
-                  <br />
-                  <span className="bg-linear-to-r from-red-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left Content */}
+              <div className="space-y-8 lg:pr-8">
+                <div className="space-y-4">
+                  <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight">
+                    <span className="bg-linear-to-r from-red-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      Câu lạc bộ
+                    </span>
+                    <br />
+                    <span className="bg-linear-to-r from-red-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      Taekwondo Hổ Kình
+                    </span>
+                  </h1>
+
+                  <div className="h-1 w-24 bg-linear-to-r from-red-500 to-blue-500 rounded-full"></div>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-xl text-gray-600 leading-relaxed">
+                    Chào mừng bạn đến với
+                  </p>
+                  <p className="text-2xl lg:text-3xl font-bold bg-linear-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
                     Taekwondo Hổ Kình
-                  </span>
-                </h1>
-                
-                <div className="h-1 w-24 bg-linear-to-r from-red-500 to-blue-500 rounded-full"></div>
+                  </p>
+                  <p className="text-lg text-gray-600 leading-relaxed">
+                    Nơi đào tạo uy tín luôn đặt chất lượng và ưu tiên người học
+                    làm tôn chỉ. Hãy{" "}
+                    <span className="font-semibold text-gray-800">Đăng Ký</span>{" "}
+                    hoặc{" "}
+                    <span className="font-semibold text-gray-800">Liên Hệ</span>{" "}
+                    để được chúng tôi tư vấn, hỗ trợ các thắc mắc của bạn.
+                  </p>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <ThemeButton
+                    name="Đăng Ký"
+                    onClick={() => setShowRegistrationModal(true)}
+                  />
+                  <ThemeOutlinedButton
+                    name="Liên Hệ"
+                    onClick={() => {
+                      const contactSection = document.getElementById("schedule");
+                      if (contactSection) {
+                        contactSection.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-6 pt-8">
+                  <StatCard number="500+" label="Học viên" />
+                  <StatCard number="15+" label="Năm kinh nghiệm" />
+                  <StatCard number="50+" label="Giải thưởng" />
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <p className="text-xl text-gray-600 leading-relaxed">
-                  Chào mừng bạn đến với
-                </p>
-                <p className="text-2xl lg:text-3xl font-bold bg-linear-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
-                  Taekwondo Hổ Kình
-                </p>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  Nơi đào tạo uy tín luôn đặt chất lượng và ưu tiên người học làm tôn chỉ.
-                  Hãy <span className="font-semibold text-gray-800">Đăng Ký</span> hoặc{' '}
-                  <span className="font-semibold text-gray-800">Liên Hệ</span> để được chúng tôi tư vấn, hỗ trợ các thắc mắc của bạn.
-                </p>
-              </div>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <ThemeButton name="Đăng Ký" />
-                <ThemeOutlinedButton name="Liên Hệ" />
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-6 pt-8">
-                <StatCard number="500+" label="Học viên" />
-                <StatCard number="15+" label="Năm kinh nghiệm" />
-                <StatCard number="50+" label="Giải thưởng" />
-              </div>
-            </div>
-
-            {/* Right Image - Placeholder */}
-            <div className="hidden lg:flex items-center justify-center">
-              <div className="relative">
-                  <img src= {main_img} alt="" />
+              {/* Right Image - Placeholder */}
+              <div className="hidden lg:flex items-center justify-center">
+                <div className="relative">
+                  <img src={main_img} alt="" />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
         {/* Features Section */}
         <div className="py-16 bg-white/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -100,19 +121,19 @@ export function Homepage() {
               </h2>
               <div className="h-1 w-24 bg-linear-to-r from-red-500 to-blue-500 rounded-full mx-auto"></div>
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-8">
-              <FeatureCard 
+              <FeatureCard
                 icon="🥋"
                 title="Huấn luyện chuyên nghiệp"
                 description="Đội ngũ HLV giàu kinh nghiệm, tận tâm với học viên"
               />
-              <FeatureCard 
+              <FeatureCard
                 icon="🏆"
                 title="Thành tích xuất sắc"
                 description="Nhiều học viên đạt huy chương tại các giải đấu"
               />
-              <FeatureCard 
+              <FeatureCard
                 icon="💪"
                 title="Môi trường thân thiện"
                 description="Không gian tập luyện hiện đại, an toàn"
@@ -120,15 +141,21 @@ export function Homepage() {
             </div>
           </div>
         </div>
-          
-        
-        {/* Schedule Section */}
-        <ScheduleSection sectionRef= {scheduleSectionRef}></ScheduleSection>
-        <AchievementSection sectionRef={achievementSectionRef}></AchievementSection>
-        <EventSection sectionRef={eventSectionRef}></EventSection>
-        <Footer></Footer>
-          
 
+        {/* Schedule Section */}
+        <ScheduleSection sectionRef={scheduleSectionRef}></ScheduleSection>
+        <AchievementSection
+          sectionRef={achievementSectionRef}
+        ></AchievementSection>
+        <EventSection
+          sectionRef={eventSectionRef}
+          type={"event"}
+        ></EventSection>
+        <EventSection
+          sectionRef={articleSectionRef}
+          type={"article"}
+        ></EventSection>
+        <Footer></Footer>
       </div>
     </>
   );
@@ -203,16 +230,12 @@ function StickyNavbar({role}) {
           {/* Logo Section */}
           <div className="flex items-center space-x-3">
             <div className="w-12 max-xl:ml-5 mb-5 flex scale-200 items-center h-12">
-              <img src= {logo} alt="" />
+              <img src={logo} alt="" />
             </div>
             <div className="flex flex-col">
               <span className="ml-4 text-xl font-bold bg-linear-to-r from-blue-500 to-red-500 bg-clip-text text-transparent">
                 Taekwondo Club
               </span>
-              {/* <span className="ml-4 text-xl font-bold text-gray-500">
-                Taekwondo Club
-              </span> */}
-              {/* <span className="text-xs text-gray-500 font-medium">Taekwondo Club</span> */}
             </div>
           </div>
 
@@ -221,8 +244,9 @@ function StickyNavbar({role}) {
             <NavLink href="#schedule" text="Lịch học" />
             <NavLink href="#achievement" text="Thành tích" />
             <NavLink href="#event" text="Sự kiện" />
+            <NavLink href="#article" text="Tin tức" />
             <NavLink href="#contact" text="Liên hệ" />
-            <LoginButton role={role}/>
+            <LoginButton role={role} />
           </div>
 
           {/* Mobile menu button */}
@@ -230,11 +254,26 @@ function StickyNavbar({role}) {
             onClick={() => setIsOpen(!isOpen)}
             className="lg:hidden p-2 rounded-xl text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               {isOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>
@@ -243,10 +282,26 @@ function StickyNavbar({role}) {
         {/* Mobile Navigation Menu */}
         {isOpen && (
           <div className="lg:hidden pb-4 space-y-2 border-t border-gray-100 pt-4 animate-in slide-in-from-top">
-            <MobileNavLink href="#schedule" text="Lịch học" onClick={() => setIsOpen(false)} />
-            <MobileNavLink href="#achievement" text="Thành tích" onClick={() => setIsOpen(false)} />
-            <MobileNavLink href="#event" text="Sự kiện" onClick={() => setIsOpen(false)} />
-            <MobileNavLink href="#activity" text="Hoạt động CLB" onClick={() => setIsOpen(false)} />
+            <MobileNavLink
+              href="#schedule"
+              text="Lịch học"
+              onClick={() => setIsOpen(false)}
+            />
+            <MobileNavLink
+              href="#achievement"
+              text="Thành tích"
+              onClick={() => setIsOpen(false)}
+            />
+            <MobileNavLink
+              href="#event"
+              text="Sự kiện"
+              onClick={() => setIsOpen(false)}
+            />
+            <MobileNavLink
+              href="#article"
+              text="Tin tức"
+              onClick={() => setIsOpen(false)}
+            />
             <div className="pt-2">
               <MobileLoginButton onClick={() => setIsOpen(false)} />
             </div>
@@ -697,7 +752,7 @@ function StudyShiftCard({ cardInfo }) {
         onClick={handleEnrollClick}
         className="mt-6 w-full py-3 bg-linear-to-r from-red-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200"
       >
-        Đăng ký ngay
+        Liên hệ ngay
       </button>
     </div>
   );
@@ -1004,13 +1059,13 @@ function AwardCarouselSkeleton() {
   );
 }
 
-function EventSection({sectionRef}) {
+function EventSection({sectionRef, type}) {
   const itemsPerPage = 3;
   const [currentPage, setCurrentPage] = useState(0);
 
   const { data, isPending, isError, isSuccess, refetch } = useQuery({
-    queryKey: ['articles'+ currentPage],
-    queryFn: () => articleService.getDataHomepage(currentPage, itemsPerPage),
+    queryKey: ['articles'+ currentPage, type],
+    queryFn: () => articleService.getDataHomepage(currentPage, itemsPerPage, type),
     staleTime: 300000,
     refetchOnMount: true,
   })
@@ -1018,16 +1073,16 @@ function EventSection({sectionRef}) {
 
   return (
   <>
-    <div ref={sectionRef} id="event" className="relative py-20">
+    <div ref={sectionRef} id={type} className="relative py-20">
       <div className="absolute inset-0 bg-white/50 -z-10"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <SwimmingOrcaBackground/>
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl font-bold bg-linear-to-r from-red-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            Sự kiện
+            {type === "event" ? "Sự kiện thường niên" : "Tin tức"}
           </h2>
           <div className="h-1.5 w-32 bg-linear-to-r from-red-500 to-blue-500 rounded-full mx-auto"></div>
-          <p className="mt-6 text-gray-600 text-lg">Các sự kiện nổi bật của CLB</p>
+          <p className="mt-6 text-gray-600 text-lg">{type === 'event' ? "Các sự kiện nổi bật của CLB" : "Các tin tức liên quan đến câu lạc bộ"}</p>
         </div>
         
         {isPending && 
@@ -1290,44 +1345,11 @@ function ArticleCardSkeleton() {
 
 
 function Footer() {
-  const branches = [
-    {
-      name: 'Chi nhánh Quận 3',
-      address: 'Số 185 Cách Mạng Tháng Tám, Quận 3',
-      hotline: '0123 456 789',
-      mapUrl: 'https://maps.app.goo.gl/zubfmtXbNRuMTbQb7'
-    },
-    {
-      name: 'Chi nhánh Quận 10',
-      address: 'Số 123 Đường ABC, Quận 10',
-      hotline: '0123 456 790',
-      mapUrl: 'https://maps.app.goo.gl/ep5uspiUNxYVT7oX7'
-    },
-    {
-      name: 'Chi nhánh Quận 1',
-      address: 'Số 456 Lê Thánh Tôn, Quận 1',
-      hotline: '0123 456 791',
-      mapUrl: 'https://maps.google.com'
-    },
-    {
-      name: 'Chi nhánh Quận 1',
-      address: 'Số 456 Lê Thánh Tôn, Quận 1',
-      hotline: '0123 456 791',
-      mapUrl: 'https://maps.google.com'
-    },
-    {
-      name: 'Chi nhánh Quận 1',
-      address: 'Số 456 Lê Thánh Tôn, Quận 1',
-      hotline: '0123 456 791',
-      mapUrl: 'https://maps.google.com'
-    },
-    {
-      name: 'Chi nhánh Quận 1',
-      address: 'Số 456 Lê Thánh Tôn, Quận 1',
-      hotline: '0123 456 791',
-      mapUrl: 'https://maps.google.com'
-    }
-  ];
+  const { data: branches } = useQuery({
+    queryKey: ["facility_homepage"],
+    queryFn: () => facilityService.getDataHomepage(),
+    staleTime: 300000,
+  });
 
   return (
     <footer className="bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
@@ -1435,7 +1457,7 @@ function Footer() {
           <div className="space-y-6">
             <h4 className="text-lg font-bold text-white mb-4">Chi nhánh</h4>
             <div className="space-y-4">
-              {branches.map((branch, index) => (
+              {branches?.data && branches.data.map((branch, index) => (
                 <div key={index} className="bg-gray-800/50 rounded-lg p-4 hover:bg-gray-700/50 transition-colors duration-300">
                   <h5 className="font-semibold text-white mb-2">{branch.name}</h5>
                   <p className="text-gray-400 text-sm mb-2 flex items-start">
@@ -1446,14 +1468,14 @@ function Footer() {
                     {branch.address}
                   </p>
                   <div className="flex items-center justify-between">
-                    <a href={`tel:${branch.hotline.replace(/\s/g, '')}`} className="text-blue-400 text-sm hover:text-blue-300 flex items-center">
+                    <a href={`tel:${branch.phoneNumber.replace(/\s/g, '')}`} className="text-blue-400 text-sm hover:text-blue-300 flex items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                       </svg>
-                      {branch.hotline}
+                      {branch.phoneNumber}
                     </a>
                     <a 
-                      href={branch.mapUrl} 
+                      href={branch.mapsLink} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-sm text-gray-400 hover:text-white transition-colors flex items-center"
@@ -1503,92 +1525,3 @@ export function ArticlePage() {
     </>
   );
 }
-
-// const allBranches = [
-  //   {
-  //     address: 'Trung tâm cung ứng dịch vụ Văn Hóa - Thể Thao Phường Xuân Hoà - Số 185 Cách Mạng Tháng Tám, Quận 3',
-  //     schedule: [
-  //       {
-  //         day: '2-4-6',
-  //         shift: ['17:15-18:45', '19:00-20:30']
-  //       },
-  //       {
-  //         day: '3-5-7',
-  //         shift: ['17:15-18:45']
-  //       },
-  //       {
-  //         day: '7-CN',
-  //         shift: ['17:15-18:45', '19:00-20:30']
-  //       }
-  //     ],
-  //     mapsLink: '',
-  //     img: '/branch2.webp'
-  //   },
-  //   {
-  //     address: 'Nhà văn hóa Phường 15, Quận 10 - Số 123 Đường ABC, Quận 10',
-  //     schedule: [
-  //       {
-  //         day: '2-4-6',
-  //         shift: ['18:00-19:30']
-  //       }
-  //     ],
-  //     mapsLink: '',
-  //     img: '/branch.webp'
-  //   },
-  //   {
-  //     address: 'Trung tâm thể thao Phường Tân Định, Quận 1 - Số 456 Lê Thánh Tôn, Quận 1',
-  //     schedule: [
-  //       {
-  //         day: '3-5-7',
-  //         shift: ['17:00-18:30', '19:00-20:30']
-  //       }
-  //     ],
-  //     mapsLink: '',
-  //     img: '/branch2.webp'
-  //   },
-  //   {
-  //     address: 'Nhà văn hóa Phường 12, Quận Tân Bình - Số 789 Trường Chinh, Quận Tân Bình',
-  //     schedule: [
-  //       {
-  //         day: '2-4-6',
-  //         shift: ['18:30-20:00']
-  //       },
-  //       {
-  //         day: '8',
-  //         shift: ['08:00-09:30', '09:45-11:15']
-  //       }
-  //     ],
-  //     mapsLink: '',
-  //     img: '/branch.webp'
-  //   },
-  //   {
-  //     address: 'Trung tâm TDTT Phường 7, Quận 5 - Số 321 Nguyễn Trãi, Quận 5',
-  //     schedule: [
-  //       {
-  //         day: '3-5',
-  //         shift: ['17:30-19:00']
-  //       },
-  //       {
-  //         day: '7',
-  //         shift: ['17:30-19:00', '19:15-20:45']
-  //       }
-  //     ],
-  //     mapsLink: '',
-  //     img: '/branch2.webp'
-  //   },
-  //   {
-  //     address: 'Trung tâm TDTT Phường 7, Quận 5 - Số 321 Nguyễn Trãi, Quận 5',
-  //     schedule: [
-  //       {
-  //         day: '3-5',
-  //         shift: ['17:30-19:00']
-  //       },
-  //       {
-  //         day: '7',
-  //         shift: ['17:30-19:00', '19:15-20:45']
-  //       }
-  //     ],
-  //     mapsLink: '',
-  //     img: '/branch2.webp'
-  //   }
-  // ];
