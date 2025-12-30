@@ -23,6 +23,7 @@ import { ToastContainer } from 'react-toastify';
 import ForgotPassword from "./pages/ForgotPassword";
 import AccountSettings from "./pages/AccountSetting";
 import VectorStoreManager from "./pages/OrcaKnowTraining";
+import AboutUsPage from "./pages/AboutUs";
 
 function App() {
   const router = createBrowserRouter([
@@ -144,6 +145,10 @@ function App() {
             },
           ],
         },
+        {
+          path: "/gioi_thieu",
+          element: <AboutUsPage/>
+        }
       ],
     },
   ]);

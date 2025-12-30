@@ -15,7 +15,7 @@ import OrcaKnowChat from '../features/ai/components/OrcaKnowChat';
 import RegistrationModal from '../features/register/components/RegistrationModal';
 
 export function Homepage() {
-
+  const navigate = useNavigate();
   const scheduleSectionRef = useRef(null);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const achievementSectionRef = useRef(null);
@@ -65,13 +65,19 @@ export function Homepage() {
                   <p className="text-2xl lg:text-3xl font-bold bg-linear-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
                     Taekwondo Hổ Kình
                   </p>
-                  <p className="text-lg text-gray-600 leading-relaxed">
+                  <p className="text-lg text-gray-700 leading-relaxed">
                     Nơi đào tạo uy tín luôn đặt chất lượng và ưu tiên người học
                     làm tôn chỉ. Hãy{" "}
-                    <span className="font-semibold text-gray-800">Đăng Ký</span>{" "}
-                    hoặc{" "}
-                    <span className="font-semibold text-gray-800">Liên Hệ</span>{" "}
-                    để được chúng tôi tư vấn, hỗ trợ các thắc mắc của bạn.
+                    <span className="font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                      Đăng Ký
+                    </span>{" "}
+                    để trở thành một thành viên của câu lạc bộ hoặc bạn có thể
+                    tiếp tục khám phá về câu lạc bộ tại phần{" "}
+                    <span className="font-bold text-red-600 hover:text-red-700 transition-colors">
+                      Giới Thiệu
+                    </span>{" "}
+                    nơi chúng tôi sẽ bật mí cho bạn những thông tin quan trọng
+                    về câu lạc bộ
                   </p>
                 </div>
 
@@ -81,18 +87,9 @@ export function Homepage() {
                     name="Đăng Ký"
                     onClick={() => setShowRegistrationModal(true)}
                   />
-                  <ThemeOutlinedButton
-                    name="Liên Hệ"
-                    onClick={() => {
-                      const contactSection = document.getElementById("schedule");
-                      if (contactSection) {
-                        contactSection.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
-                      }
-                    }}
-                  />
+                  <ThemeOutlinedButton name="Giới thiệu" onClick={() => {
+                    navigate("/gioi_thieu");
+                  }} />
                 </div>
 
                 {/* Stats */}
