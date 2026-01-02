@@ -54,6 +54,8 @@ const FacilityManagement = () => {
     const onSaveEditClass = async ({classInfo, facilityId, newUsers, newMembers, deletedMembers, usersToUpdate, classMembersChangeStatus}) => {
         try {
             if(classInfo.id) {
+                console.log("CLASSSSSSSS: " + classInfo);
+                
                 console.log("ON SAVE:")
                 await facilityClassService.update(classInfo.id, classInfo);
                 queryClient.setQueryData(["facilities", 'management'], prev => ({
@@ -101,13 +103,17 @@ const FacilityManagement = () => {
 
                 // Bring all results to an array
                 const createdUsers = results.flatMap(item => item.result)
-                queryClient.setQueryData(
-                  ["members", "active", classInfo.id],
-                  (prev) => ({
-                    ...prev,
-                    data: [...createdUsers, ...prev.data],
-                  })
-                );
+                const hasActiveMemCache = queryClient.getQueryData(["members", "active", classInfo.id]);
+                if(hasActiveMemCache) {
+                  queryClient.setQueryData(
+                    ["members", "active", classInfo.id],
+                    (prev) => ({
+                      ...prev,
+                      data: [...createdUsers, ...prev.data],
+                    })
+                  );
+                }
+                
                 console.log(queryClient.getQueryData(["members", "active", classInfo.id]));
                 console.log("Map by type:");
                 console.log(createdUsers);
@@ -139,22 +145,30 @@ const FacilityManagement = () => {
                   );
                 }
                 
-                queryClient.setQueryData(
-                  ["members", "active", classInfo.id],
-                  (prev) => ({
-                    ...prev,
-                    data: [...Object.values(newMembers).flat(), ...prev.data],
-                  })
-                );
+                if(hasActiveMemCache) {
+                  queryClient.setQueryData(
+                    ["members", "active", classInfo.id],
+                    (prev) => ({
+                      ...prev,
+                      data: [...Object.values(newMembers).flat(), ...prev.data],
+                    })
+                  );
+                }
+
                 console.log("Bring into class success");
                 const allMembers = [
                   ...Object.values(createdUsers),
                   ...Object.values(newMembers),
                 ].flat();
-                queryClient.setQueryData(["members", "active", classInfo.id], prev => ({
-                    ...prev,
-                    ...allMembers
-                }));
+                if(hasActiveMemCache) {
+                  queryClient.setQueryData(
+                    ["members", "active", classInfo.id],
+                    (prev) => ({
+                      ...prev,
+                      ...allMembers,
+                    })
+                  );
+                }
 
                 console.log(deletedMembers);
                 console.log(classInfo.id);
@@ -202,6 +216,8 @@ const FacilityManagement = () => {
                     facilityId: facilityId
                   }
                 )).data;
+
+                classInfo.id = createdClass.id;
 
                 queryClient.setQueryData(["facilities", 'management'], (prev) => ({
                   ...prev,

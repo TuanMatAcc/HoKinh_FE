@@ -229,7 +229,7 @@ const FacilityDetail = ({
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 w-full sm:w-auto"
               onClick={() => {
                 setSelectedClass({
-                  classId: null,
+                  id: null,
                   name: "",
                   description: "",
                   daysOfWeek: "",
