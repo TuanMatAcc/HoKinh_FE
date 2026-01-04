@@ -7,6 +7,7 @@ export const articleService = {
     getAllArticlesByCategory: (categoryId) => api.get('/api/article/admin/all-articles-by-category', {
         params: {categoryId}
     }),
+    getArticleById: (id) => api.get(`/api/article/homepage/${id}`),
     getAllDeletedArticles: () => api.get('/api/article/admin/all-deleted-articles'),
     create: (article) => api.post('/api/article/admin/add', article),
     update: (articleId, article) => api.put(`/api/article/admin/update/${articleId}`, article),
