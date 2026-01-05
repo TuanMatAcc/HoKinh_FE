@@ -594,9 +594,7 @@ function StudyShiftCard({ cardInfo }) {
 
   const handleEnrollClick = () => {
     if (cardInfo.phoneNumber) {
-      // Remove any non-digit characters from phone number
       const cleanPhone = cardInfo.phoneNumber.replace(/\D/g, "");
-      // Redirect to Zalo with the phone number
       window.open(`https://zalo.me/${cleanPhone}`, "_blank");
     } else {
       alert("Số điện thoại không khả dụng");
@@ -612,12 +610,19 @@ function StudyShiftCard({ cardInfo }) {
 
   return (
     <div className="group p-6 rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-blue-200 flex flex-col">
-      <div className="mb-6 rounded-xl overflow-hidden">
+      <div className="mb-6 rounded-xl overflow-hidden relative">
         <img
           src={cardInfo["img"]}
-          alt="Chi nhánh"
+          alt={cardInfo.name || "Chi nhánh"}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
+        {cardInfo.name && (
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/50 via-black/60 to-transparent p-4">
+            <h3 className="text-xl font-bold text-white drop-shadow-lg">
+              {cardInfo.name}
+            </h3>
+          </div>
+        )}
       </div>
 
       <div className="flex items-start mb-4">

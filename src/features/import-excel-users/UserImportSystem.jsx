@@ -400,7 +400,7 @@ const UserImportSystem = ({classId}) => {
         console.log(response.data);
       } else if (response.type === "blob") {
         // Error case - some imports failed, Excel file returned
-        downloadBlob(response.data, "users-import-errors.xlsx");
+        downloadBlob(response.data, "DS_nguoi_dung_import_loi.xlsx");
 
         // Try to read statistics from custom headers
         console.log(response.headers);
@@ -434,8 +434,9 @@ const UserImportSystem = ({classId}) => {
       }
     } catch (err) {
       console.error("Import error:", err);
-      if (err.response) {
-        setError(`Lỗi từ máy chủ: ${err.response.status}`);
+      if (err.response?.data instanceof Blob) {
+        const text = await err.response.data.text();
+        setError(`Lỗi từ máy chủ: ${text}. Mã lỗi: 403`);
       } else if (err.request) {
         setError("Không thể kết nối đến máy chủ. Vui lòng thử lại.");
       } else {
