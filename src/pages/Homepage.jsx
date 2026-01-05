@@ -300,7 +300,7 @@ function StickyNavbar({role}) {
               onClick={() => setIsOpen(false)}
             />
             <div className="pt-2">
-              <MobileLoginButton onClick={() => setIsOpen(false)} />
+              <MobileLoginButton role={role} onClick={() => setIsOpen(false)} />
             </div>
           </div>
         )}
@@ -345,14 +345,14 @@ function MobileNavLink({ href, text, onClick }) {
   );
 }
 
-function MobileLoginButton({ onClick }) {
+function MobileLoginButton({ onClick, role }) {
   return (
     <a
-      href="#"
+      href="/login"
       onClick={onClick}
       className="block w-full px-4 py-3 text-center bg-linear-to-r from-red-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg"
     >
-      Đăng nhập
+      {role ? "Vào câu lạc bộ" : "Đăng nhập"}
     </a>
   );
 }
