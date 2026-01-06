@@ -11,6 +11,19 @@ const DateRangeSelector = ({
 
   const handleStartDateChange = (e) => {
     const newStartDate = e.target.value;
+    
+    // Check if the new range exceeds 365 days
+    if (endDate) {
+      const start = new Date(newStartDate);
+      const end = new Date(endDate);
+      const diffTime = Math.abs(end - start);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays > 365) {
+        return; // Don't update if range exceeds 365 days
+      }
+    }
+    
     setStartDate(newStartDate);
 
     // If end date is before new start date, adjust end date
@@ -21,6 +34,19 @@ const DateRangeSelector = ({
 
   const handleEndDateChange = (e) => {
     const newEndDate = e.target.value;
+    
+    // Check if the new range exceeds 365 days
+    if (startDate) {
+      const start = new Date(startDate);
+      const end = new Date(newEndDate);
+      const diffTime = Math.abs(end - start);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays > 365) {
+        return; // Don't update if range exceeds 365 days
+      }
+    }
+    
     setEndDate(newEndDate);
 
     // If start date is after new end date, adjust start date
@@ -63,6 +89,7 @@ const DateRangeSelector = ({
   };
 
   const daysDiff = getDaysDifference();
+  const isRangeValid = !daysDiff || daysDiff <= 365;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -159,14 +186,19 @@ const DateRangeSelector = ({
 
       {/* Summary */}
       {startDate && endDate && (
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-800">
+        <div className={`mt-4 p-3 rounded-lg ${isRangeValid ? 'bg-blue-50' : 'bg-red-50'}`}>
+          <p className={`text-sm ${isRangeValid ? 'text-blue-800' : 'text-red-800'}`}>
             <span className="font-medium">Khoảng thời gian:</span>{" "}
             {formatDate(startDate)} - {formatDate(endDate)}
             {daysDiff !== null && (
               <span className="ml-2">({daysDiff + 1} ngày)</span>
             )}
           </p>
+          {!isRangeValid && (
+            <p className="text-sm text-red-700 mt-1 font-medium">
+              ⚠️ Khoảng thời gian tối đa là 365 ngày
+            </p>
+          )}
         </div>
       )}
 
